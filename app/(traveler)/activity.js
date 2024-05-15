@@ -1,11 +1,25 @@
-import { View, Text } from 'react-native'
+import { View, Text, SafeAreaView, TouchableOpacity, StatusBar } from 'react-native'
 import React from 'react'
 
 const activity = () => {
   return (
-    <View>
-      <Text>activity</Text>
+    <SafeAreaView>
+    <View className="justify-start ml-4">
+      <Text className="text-xl">Activity</Text>
     </View>
+    <View className="flex-col justify-center gap-3 border-solid rounded-xl border-red-500 ml-1 mt-5">
+      <TouchableOpacity className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
+        <Text>My trip</Text>
+      </TouchableOpacity>
+      <TouchableOpacity className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
+        <Text>View carry request details</Text>
+      </TouchableOpacity>
+      <TouchableOpacity className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
+        <Text>Notifications</Text>
+      </TouchableOpacity>
+    </View>
+    <StatusBar hidden={false} barStyle="dark-content"/>
+  </SafeAreaView>
   )
 }
 

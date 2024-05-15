@@ -10,9 +10,9 @@ import {
     TouchableWithoutFeedback, 
     Keyboard,
     StatusBar
-   } from 'react-native'
-  import React, { useState} from 'react'
-  
+   } from 'react-native';
+  import React, { useState} from 'react';
+
   const DiscussionScreen = () => {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
