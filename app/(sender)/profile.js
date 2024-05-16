@@ -8,7 +8,8 @@ import { signUserOut } from '../lib/firebaseConfig';
 
 
 const profile = () => {
-  const { isAuth, setIsAuth } = useGlobalContext();
+  const { isAuth, setIsAuth, isUser } = useGlobalContext();
+
 
   //Logout
   const logout = async () => {
@@ -31,8 +32,8 @@ const profile = () => {
         <View className="w-full justify-start items-center gap-3 flex-row">
           <Image source={require('../../assets/images/send-img.jpg')} className="w-16 h-16 rounded-full" width={64} height={64} style={{borderRadius: 100}} resizeMode='cover'/>
           <View className="gap-1">
-            <Text>Name</Text>
-            <Text>Email</Text>
+            <Text>{isUser? isUser.email : `No user name`}</Text>
+            <Text>{isUser? isUser.uid : `No user email`}</Text>
             <Text className="underline text-green-600">You are a Sender</Text>
           </View>
         </View>

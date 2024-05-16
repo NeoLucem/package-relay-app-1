@@ -5,28 +5,28 @@ const checkTravelerScreen = () => {
 
   const fakeData = [
     {
-      name: 'John Doe',
+      name: 'John Oh',
       date: '2022-01-01',
       from: "Accra",
       to: "Lagos",
       maxWeight: 10,
     },
     {
-      name: 'John Hoe',
+      name: 'John My',
       date: '2022-01-01',
       from: "Abidjan",
       to: "Lagos",
       maxWeight: 10,
     },
     {
-      name: 'John Wow',
+      name: 'John Holly',
       date: '2022-01-01',
       from: "Brazzaville",
       to: "Lagos",
       maxWeight: 10,
     },
     {
-      name: 'John shit',
+      name: 'John God',
       date: '2022-01-01',
       from: "Abuja",
       to: "Lagos",

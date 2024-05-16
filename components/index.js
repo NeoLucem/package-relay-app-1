@@ -1,4 +1,2 @@
-import DiscussionComponent from './DiscussionComponent';
-
-
-export default {DiscussionComponent}
+export { default as GoodComponent } from './GoodComponent';
+export { default as DiscussionComponent } from './DiscussionComponent';

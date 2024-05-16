@@ -18,7 +18,13 @@ const ValidateOtp = () => {
             <View className="flex-col justify-around gap-2 mb-2"><View className="w-[93%] mb-4">
                 <Text className="font-pextrabold">We just send you an SMS</Text>
             </View>
-            <TextInput placeholderTextColor="#000" keyboardType='numeric' textContentType='oneTimeCode' className="bg-white w-[93%] h-12 border-solid rounded-xl border-black-100 border-2 pl-2 mb-10" placeholder='Verification code'/>
+            <TextInput 
+                placeholderTextColor="#000" 
+                keyboardType='numeric' 
+                textContentType='oneTimeCode' 
+                className="bg-white w-[93%] h-12 border-solid rounded-xl border-black-100 border-2 pl-2 mb-10" 
+                placeholder='Verification code'
+            />
             <View className="w-[93%] justify-center">
                 <TouchableOpacity>
                     <Text className="underline text-center">Didn't receive a code?</Text>

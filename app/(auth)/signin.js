@@ -15,9 +15,10 @@ const SignIn = () => {
   const handleSignIn = async () => {
     setIsAuth(true);
     const user = await AsyncStorage.getItem('user');
+    console.log(JSON.parse(user));
     try {
        signInUser(email, password);
-       setIsUser(user);
+       setIsUser(JSON.parse(user));
        console.log("May be", user, isUser);
     } catch (error) {
       console.log(error);

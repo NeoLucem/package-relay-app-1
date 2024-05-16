@@ -103,7 +103,6 @@ const SignUp = () => {
         { label: 'Jamaica +1-876', value: '+1-876' },
         { label: 'Japan +81', value: '+81' },
         { label: 'Jordan +962', value: '+962' },
-        { label: 'Kazakhstan +7', value: '+7' },
         { label: 'Kenya +254', value: '+254' },
         { label: 'Kiribati +686', value: '+686' },
         { label: 'Korea (North) +850', value: '+850' },

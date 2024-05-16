@@ -68,12 +68,12 @@ const getCurrentUser = async () => {
     onAuthStateChanged(FIREBASE_APP_AUTH, (user) => {
       if (user) {
         const uid = user.uid;
-        console.log(uid)
+        console.log('display uid',uid, 'user', user)
+        return user
       } else {
         console.log('No user is signed in');
       }
     });
-    return uid;
   } catch (error) {
     return error;
   }
@@ -88,9 +88,10 @@ const signInUser = async (email, password) => {
             const user = userCredential.user;
             const userJson = JSON.stringify(user);
             AsyncStorage.setItem('user', userJson);
-            console.log('User Json',userJson);
+            // console.log('User Json',userJson);
+            // console.log('test de deo', user)
             router.replace('/');
-            return userJson
+            return user
         })
         .catch((error) => {
           console.log(error); 
@@ -110,7 +111,6 @@ const signUserOut = async () => {
   }
 };
 
-// const { isUser } = useGlobalContext();
 //Fetch user
 const fetchUser = async (user) => {
   onAuthStateChanged(FIREBASE_APP_AUTH, (user) => {
