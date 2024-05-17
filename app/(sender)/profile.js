@@ -34,7 +34,7 @@ const profile = () => {
           <View className="gap-1">
             <Text>{isUser? isUser.email : `No user name`}</Text>
             <Text>{isUser? isUser.uid : `No user email`}</Text>
-            <Text className="underline text-green-600">You are a Sender</Text>
+            <Text className="underline text-green-600">You are a Sender.</Text>
           </View>
         </View>
       </View>
