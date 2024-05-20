@@ -11,7 +11,7 @@ const HomeScreen = () => {
     // const [isAuth, setIsAuth] = React.useState(false);
     const { isAuth, setIsAuth, setIsUser, isUser} = useGlobalContext();
 
-
+  useEffect(() => {
     if(!isAuth){
         setTimeout(() => {
           setIsAuth(false);
@@ -21,6 +21,8 @@ const HomeScreen = () => {
           router.replace('(auth)/signin');
         }, 0);
     }
+  }, [isAuth]);
+    
 
 
 

@@ -13,7 +13,7 @@ import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 // import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 // Optionally import the services that you want to use
 // import {...} from "firebase/database";
-import { getFirestore, collection, setDoc, doc } from "@firebase/firestore";
+import { getFirestore, collection, setDoc, doc, getDoc} from "@firebase/firestore";
 // import {...} from "firebase/functions";
 // import {...} from "firebase/storage";
 
@@ -57,9 +57,6 @@ const createUserDocument = async (uid, userData) =>{
   }
 }
 
-
-
-
 //Create new user
 const createNewUser = async (email, password, fname, lname, birthDate, phone) => {
   try {
@@ -73,6 +70,9 @@ const createNewUser = async (email, password, fname, lname, birthDate, phone) =>
       firstName: fname,
       lastName: lname,
       birthDate: birthDate,
+      email: email,
+      id: user.uid,
+      type: null,
       photoURL: null 
     };
 
@@ -119,6 +119,7 @@ const signInUserAfterOtp = async (email, password) => {
     console.log(error);
   }
 };
+
 //Sign in user
 const signInUser = async (email, password) => {
   try {
@@ -150,6 +151,26 @@ const signUserOut = async () => {
   }
 };
 
+// Function to fetch user data from Firestore
+const fetchUserData = async (uid) => {
+  try {
+    const userDoc = await getDoc(doc(FIREBASE_DB_FIRESTORE, 'users', uid));
+    if (userDoc.exists()) {
+      console.log('Document data:', userDoc.data());
+      const userData = JSON.stringify(userDoc.data());
+      AsyncStorage.setItem('user', userData);
+      console.log(userData);
+      return userDoc.data();
+    } else {
+      console.log('No such document!');
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching user data: ", error);
+    throw new Error(error);
+  }
+};
+
 
 
 
@@ -161,5 +182,6 @@ export {
   signInUser, 
   signUserOut, 
   getCurrentUser,
-  signInUserAfterOtp 
+  signInUserAfterOtp,
+  fetchUserData  
 };

@@ -1,16 +1,37 @@
 import { View, Text, TouchableOpacity, Image, SafeAreaView, StatusBar  } from 'react-native';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { router } from 'expo-router';
 import { useGlobalContext } from "../context/GlobalProvider";
 // import { signUserOut, getCurrentUser } from '../lib/firebaseConfig';
-import { signUserOut } from '../lib/firebaseConfig';
-import { signOutAppWrite } from '../lib/appwriteConfig';
+import { signUserOut, fetchUserData } from '../lib/firebaseConfig';
+// import { signOutAppWrite } from '../lib/appwriteConfig';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const profile = () => {
-  const { isAuth, setIsAuth, isUser, setIsUser } = useGlobalContext();
+  const { 
+    isAuth, 
+    setIsAuth, 
+    isUser, 
+    setIsUser,
+    user,
+    setUser
+   } = useGlobalContext();
 
+  useEffect(() => {
+    const load = async () => {
+      try {
+        if(isUser){
+          const user = await fetchUserData(isUser.uid);
+          console.log(user);
+          setUser(user);
+        }
+      } catch (error) {
+        throw new Error(error);
+      }
+    }
+    load();
+  }, []);
 
   //Logout
   const logout = async () => {
@@ -25,7 +46,7 @@ const profile = () => {
     setIsAuth(false);
     console.log('Logged out' , isAuth);
   };
-  // const user = AsyncStorage.getItem('user');
+
   return (
     <SafeAreaView>
       <View className="justify-start ml-4">
@@ -35,9 +56,9 @@ const profile = () => {
         <View className="w-full justify-start items-center gap-3 flex-row">
           <Image source={require('../../assets/images/send-img.jpg')} className="w-16 h-16 rounded-full" width={64} height={64} style={{borderRadius: 100}} resizeMode='cover'/>
           <View className="gap-1">
-            <Text>{isUser? isUser.name : `No user name`}</Text>
+            <Text>{user? user.firstName : `No user name`} {user? user.lastName : `No user last name`}</Text>
+            <Text>{user? user.email : `No user email`}</Text>
             <Text>{isUser? isUser.email : `No user email`}</Text>
-            <Text>{isUser? isUser.uid : `No user uid`}</Text>
             <Text className="underline text-green-600">You are a Sender.</Text>
           </View>
         </View>

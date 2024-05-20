@@ -10,6 +10,7 @@ export const useGlobalContext = () => useContext(GlobalContext);
 const GlobalProvider = ({children}) => {
     const [isAuth, setIsAuth] = useState(false);
     const [isUser, setIsUser] = useState(null);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
       getCurrentUser().then((user) => {
@@ -29,7 +30,9 @@ const GlobalProvider = ({children}) => {
             isAuth,
             setIsAuth,
             isUser,
-            setIsUser
+            setIsUser,
+            user,
+            setUser
           }}
         >
           {children}
