@@ -1,5 +1,5 @@
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native'
-import React, { useState }  from 'react'
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Alert } from 'react-native'
+import React, { useEffect, useState }  from 'react'
 import {router } from 'expo-router'
 import { useGlobalContext } from "../context/GlobalProvider";
 import { signInUser } from '../lib/firebaseConfig';
@@ -10,20 +10,54 @@ const SignIn = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  useEffect(() => {
+    setIsAuth(false);
+    const checkUser = async () => {
+      const user = await AsyncStorage.getItem('user');
+      if(user){
+        setIsUser(null);
+        setIsAuth(false);
+        console.log('Sign in file',user);
+        await AsyncStorage.removeItem('user');
+        console.log(isUser)
+      }
+    }
+    checkUser();
+  
+  }, []);
+
 
 
   const handleSignIn = async () => {
-    setIsAuth(true);
-    const user = await AsyncStorage.getItem('user');
-    console.log(JSON.parse(user));
     try {
-       signInUser(email, password);
-       setIsUser(JSON.parse(user));
-       console.log("May be", user, isUser);
+      const isError = await AsyncStorage.getItem('wrongCredentials');
+       if(!isUser){
+        if(email==='' && password ===''){
+          Alert.alert('Please fill in the fields');
+        }else{
+          await signInUser(email, password);
+          const user = await AsyncStorage.getItem('user');
+          console.log(JSON.parse(user));        
+          if(isError === 'true'){
+            console.log(`Wrong credentials, can't sign in`);
+            Alert.alert('Invalid email or password');
+          }else{
+            setIsAuth(true);
+            setIsUser(JSON.parse(user));
+            router.replace('/');
+          }
+        } 
+       }else{
+          console.log('Sign in user okay');
+          await AsyncStorage.setItem('wrongCredentials', 'false')
+          setIsAuth(false)
+          setIsUser(null);        
+       }
     } catch (error) {
       console.log(error);
     }
   }
+
   return (
     <SafeAreaView>
     <View className="flex-col justify-around gap-10">

@@ -10,6 +10,9 @@ import React,  { useEffect, useState } from 'react';
 import {router} from 'expo-router';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { useGlobalContext } from "../context/GlobalProvider";
+import { verifyNumber } from '../lib/appwriteConfig';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 const SignUp = () => {
     const { isAuth, setIsAuth } = useGlobalContext();
@@ -227,12 +230,36 @@ const SignUp = () => {
         return codeNumber;
     }
 
+    //Create unique userID
+    function createUserId(phoneNumber) {
+        // Simple hash function to generate a unique ID based on the phone number
+        function hashCode(str) {
+          let hash = 0;
+          for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = (hash << 10) - hash + char;
+            hash |= 0; // Convert to 32bit integer
+          }
+          return hash;
+        }
+      
+        // Ensure the phone number is a string
+        const phoneString = String(phoneNumber);
+        
+        // Create a unique user ID
+        const userId = `user${hashCode(phoneString)}`;
+        AsyncStorage.setItem('userId', userId);
+        return userId;
+      }
 
-
-    const submitNumber = () => {
+    //Send the number for OTP verification 
+    const submitNumber = async () => {
         console.log('submitting number')
         const number = handlePhoneCode(value, phoneNumber);
         console.log(number)
+        await AsyncStorage.setItem('phone', number);
+        const userId = createUserId(number);
+        verifyNumber(userId, number);
         router.replace('./validateotp');
     }
     
@@ -267,7 +294,9 @@ const SignUp = () => {
                     </View>
                     <TouchableOpacity 
                     className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-black flex justify-center items-center"
-                    onPress={()=>submitNumber()}>
+                    onPress={()=>submitNumber()}
+                    // onPress={()=>router.replace('./validateotp')}
+                    >
                     <Text className="text-white">Continue</Text>
                     </TouchableOpacity>
                 </View>

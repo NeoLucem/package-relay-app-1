@@ -13,14 +13,13 @@ import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 // import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 // Optionally import the services that you want to use
 // import {...} from "firebase/database";
-// import {...} from "firebase/firestore";
+import { getFirestore, collection, setDoc, doc } from "@firebase/firestore";
 // import {...} from "firebase/functions";
 // import {...} from "firebase/storage";
 
 // import { useGlobalContext } from '../context/GlobalProvider'
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import { Alert } from 'react-native';
+// import { Alert } from 'react-native';
 
 // Initialize Firebase
 const firebaseConfig = {
@@ -38,27 +37,49 @@ const FIREBASE_APP = initializeApp(firebaseConfig);
 // initialize Firebase Auth for that app immediately
 const FIREBASE_APP_AUTH = initializeAuth(FIREBASE_APP, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
-});
-// const storeData = async (value) => {
-//     try {
-//         const jsonValue = JSON.stringify(value);
-//         await AsyncStorage.setItem('my-key', jsonValue);
-//       } catch (e) {
-//         // saving error
-//       }
-// };
+});// Initialize Cloud Firestore and get a reference to the service
+const FIREBASE_DB_FIRESTORE = getFirestore(FIREBASE_APP);
 
-// storeData(FIREBASE_APP_AUTH);
+
+
+
+// Function to create a user document in Firestore
+const createUserDocument = async (uid, userData) =>{
+  try {
+    // Reference to the Firestore collection where user documents are stored
+    const usersCollection = collection(FIREBASE_DB_FIRESTORE, 'users');
+    // Create a new document in the users collection with the user's UID
+    const response = await setDoc(doc(usersCollection, uid), userData);
+    console.log(response);
+  } catch (error) {
+    console.error(error);
+    throw new Error(error);
+  }
+}
+
+
 
 
 //Create new user
-const createNewUser = async (email, password) => {
+const createNewUser = async (email, password, fname, lname, birthDate, phone) => {
   try {
     const userCredential = await createUserWithEmailAndPassword(FIREBASE_APP_AUTH, email, password);
+    // User signed up successfully
     const user = userCredential.user;
-    return user;
+
+    // Create a user document with additional data in Firestore
+    const userData = {
+      phoneNumber: phone,
+      firstName: fname,
+      lastName: lname,
+      birthDate: birthDate,
+      photoURL: null 
+    };
+
+    // Call the function to create the user document
+    return createUserDocument(user.uid, userData);
   } catch (error) {
-    return error;
+    throw new Error(error);
   }
 };
 
@@ -68,17 +89,36 @@ const getCurrentUser = async () => {
     onAuthStateChanged(FIREBASE_APP_AUTH, (user) => {
       if (user) {
         const uid = user.uid;
-        console.log('display uid',uid, 'user', user)
-        return user
+        console.log(`here is your uid ${uid}`)
       } else {
         console.log('No user is signed in');
       }
     });
+    return uid;
   } catch (error) {
     return error;
   }
 };
 
+//Sign in new user after otp
+const signInUserAfterOtp = async (email, password) => {
+  try {
+    await signInWithEmailAndPassword(FIREBASE_APP_AUTH, email, password)
+    .then((userCredential) => {
+      // Signed in 
+      const user = userCredential.user;
+      const userJson = JSON.stringify(user);
+      AsyncStorage.setItem('user', userJson);
+      return userJson;
+    })
+    .catch((error) => {
+      console.log(error);
+      // Alert.alert('Invalid email or password');
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
 //Sign in user
 const signInUser = async (email, password) => {
   try {
@@ -88,14 +128,13 @@ const signInUser = async (email, password) => {
             const user = userCredential.user;
             const userJson = JSON.stringify(user);
             AsyncStorage.setItem('user', userJson);
-            // console.log('User Json',userJson);
-            // console.log('test de deo', user)
-            router.replace('/');
-            return user
+            AsyncStorage.setItem('wrongCredentials', 'false')
+            return userJson
         })
         .catch((error) => {
           console.log(error); 
-          Alert.alert('Invalid email or password');  
+          // Alert.alert('Invalid email or password');  
+          AsyncStorage.setItem('wrongCredentials', 'true')
         });
   } catch (error) {
     console.log(error); 
@@ -111,19 +150,16 @@ const signUserOut = async () => {
   }
 };
 
-//Fetch user
-const fetchUser = async (user) => {
-  onAuthStateChanged(FIREBASE_APP_AUTH, (user) => {
-    if (user) {
-        console.log('User is signed in', user);
-        console.log('User is signed in', user.email);
-      return  user;
-    } else {
-      return null;
-    }
-  });
+
+
+
+export { 
+  FIREBASE_APP, 
+  FIREBASE_APP_AUTH,
+  FIREBASE_DB_FIRESTORE, 
+  createNewUser, 
+  signInUser, 
+  signUserOut, 
+  getCurrentUser,
+  signInUserAfterOtp 
 };
-
-
-
-export { FIREBASE_APP, FIREBASE_APP_AUTH, createNewUser, signInUser, fetchUser, signUserOut, getCurrentUser };

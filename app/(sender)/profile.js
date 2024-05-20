@@ -4,23 +4,26 @@ import { router } from 'expo-router';
 import { useGlobalContext } from "../context/GlobalProvider";
 // import { signUserOut, getCurrentUser } from '../lib/firebaseConfig';
 import { signUserOut } from '../lib/firebaseConfig';
+import { signOutAppWrite } from '../lib/appwriteConfig';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const profile = () => {
-  const { isAuth, setIsAuth, isUser } = useGlobalContext();
+  const { isAuth, setIsAuth, isUser, setIsUser } = useGlobalContext();
 
 
   //Logout
   const logout = async () => {
     if(isAuth){
-      console.log('Logged out');
-      setIsAuth(false);
       signUserOut();
+      // signOutAppWrite();
+      setIsAuth(false);
+      setIsUser(null);
+      console.log('Logged out' , isAuth);
       router.replace('/');      
     }
-    setIsAuth(false)
-    console.log('Logged out 2');
+    setIsAuth(false);
+    console.log('Logged out' , isAuth);
   };
   // const user = AsyncStorage.getItem('user');
   return (
@@ -32,8 +35,9 @@ const profile = () => {
         <View className="w-full justify-start items-center gap-3 flex-row">
           <Image source={require('../../assets/images/send-img.jpg')} className="w-16 h-16 rounded-full" width={64} height={64} style={{borderRadius: 100}} resizeMode='cover'/>
           <View className="gap-1">
-            <Text>{isUser? isUser.email : `No user name`}</Text>
-            <Text>{isUser? isUser.uid : `No user email`}</Text>
+            <Text>{isUser? isUser.name : `No user name`}</Text>
+            <Text>{isUser? isUser.email : `No user email`}</Text>
+            <Text>{isUser? isUser.uid : `No user uid`}</Text>
             <Text className="underline text-green-600">You are a Sender.</Text>
           </View>
         </View>

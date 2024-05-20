@@ -4,18 +4,28 @@ import { router } from 'expo-router'
 import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobalContext } from "./context/GlobalProvider";
+// import { signOutAppWrite } from './lib/appwriteConfig';
+import { signUserOut } from './lib/firebaseConfig';
 
 const HomeScreen = () => {
     // const [isAuth, setIsAuth] = React.useState(false);
-    const { isAuth, } = useGlobalContext();
+    const { isAuth, setIsAuth, setIsUser, isUser} = useGlobalContext();
+
 
     if(!isAuth){
         setTimeout(() => {
-            router.replace('./(auth)/signin')
+          setIsAuth(false);
+          signUserOut();
+          // signOutAppWrite();
+          setIsUser(null);
+          router.replace('(auth)/signin');
         }, 0);
     }
 
+
+
     if(isAuth == true){
+      
         return (
             <SafeAreaView className="flex-col justify-center items-center h-full">
             <View className="justify-center items-center  w-full h-[60%] p-0">
