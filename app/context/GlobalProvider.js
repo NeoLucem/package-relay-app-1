@@ -11,6 +11,8 @@ const GlobalProvider = ({children}) => {
     const [isAuth, setIsAuth] = useState(false);
     const [isUser, setIsUser] = useState(null);
     const [user, setUser] = useState(null);
+    const [userType, setUserType] = useState('');
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
       getCurrentUser().then((user) => {
@@ -32,7 +34,9 @@ const GlobalProvider = ({children}) => {
             isUser,
             setIsUser,
             user,
-            setUser
+            setUser,
+            loading,
+            setLoading
           }}
         >
           {children}

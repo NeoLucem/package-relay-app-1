@@ -5,11 +5,21 @@ import { StatusBar } from "expo-status-bar";
 import { LinearGradient } from 'expo-linear-gradient';
 import { useGlobalContext } from "./context/GlobalProvider";
 // import { signOutAppWrite } from './lib/appwriteConfig';
-import { signUserOut } from './lib/firebaseConfig';
+import { signUserOut, getCurrentUser, fetchUserData, updateUserType } from './lib/firebaseConfig';
+import Loader from '../components/Loader';
 
 const HomeScreen = () => {
     // const [isAuth, setIsAuth] = React.useState(false);
-    const { isAuth, setIsAuth, setIsUser, isUser} = useGlobalContext();
+    const { 
+      isAuth, 
+      setIsAuth, 
+      setIsUser, 
+      isUser, 
+      setUser, 
+      user,
+      loading,
+      setLoading
+    } = useGlobalContext();
 
   useEffect(() => {
     if(!isAuth){
@@ -20,8 +30,24 @@ const HomeScreen = () => {
           setIsUser(null);
           router.replace('(auth)/signin');
         }, 0);
+    }else{
+      const load = async () => {
+        try {
+          if(isUser){
+            const user = await fetchUserData(isUser.uid);
+            console.log(user);
+            setUser(user);
+          }
+        } catch (error) {
+          throw new Error(error);
+        }
+      }
+      load();
+      setLoading(false);
     }
-  }, [isAuth]);
+  }, []);
+
+
     
 
 
@@ -50,7 +76,16 @@ const HomeScreen = () => {
                     <Text className="text-2xl text-white text-center">Looking for traveler?</Text>
                     <TouchableOpacity 
                       className="p-4 rounded-xl border-2 border-secondary-100 min-h-[24px] w-[144px] bg-white flex justify-center items-center"
-                      onPress={()=>router.replace('./(sender)/home')}>
+                      onPress={()=>{
+                        if(user.type === 'sender'){
+                          router.replace('./(sender)/home')
+                        }else{
+                          updateUserType(isUser.uid, 'sender');
+                        router.replace('./(sender)/home')
+                        }
+                        }}
+                      // onPress={setUserRoleToSender}
+                      >
                       <Text>Sender</Text>
                     </TouchableOpacity>
                   </View>
@@ -79,14 +114,22 @@ const HomeScreen = () => {
                     </Text>
                     <TouchableOpacity 
                       className="p-4 rounded-xl border-2 border-secondary-100 min-h-[24px] w-[144px] bg-white flex justify-center items-center"
-                      onPress={()=>router.replace('./(traveler)/home')}>
+                      onPress={()=>{
+                        if(user.type === 'traveler'){
+                          updateUserType(isUser.uid, 'traveler');
+                          router.replace('./(traveler)/home')
+                        }else{
+                          updateUserType(isUser.uid, 'traveler');
+                        router.replace('./(traveler)/home')
+                        }
+                        }}>
                       <Text>Traveler</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
               </ImageBackground>
             </View>
-        
+            <Loader isLoading={loading} />
             <StatusBar hidden={true}/>
         </SafeAreaView>
           )

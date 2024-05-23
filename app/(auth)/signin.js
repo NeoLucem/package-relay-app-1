@@ -4,9 +4,10 @@ import {router } from 'expo-router'
 import { useGlobalContext } from "../context/GlobalProvider";
 import { signInUser } from '../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import  Loader  from '../../components/Loader';
 
 const SignIn = () => {
-  const { setIsAuth, setIsUser, isUser } = useGlobalContext();
+  const { setIsAuth, setIsUser, isUser, loading, setLoading } = useGlobalContext();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -30,6 +31,7 @@ const SignIn = () => {
 
   const handleSignIn = async () => {
     try {
+      setLoading(true);
       const isError = await AsyncStorage.getItem('wrongCredentials');
        if(!isUser){
         if(email==='' && password ===''){
@@ -44,6 +46,7 @@ const SignIn = () => {
           }else{
             setIsAuth(true);
             setIsUser(JSON.parse(user));
+            // setLoading(false);
             router.replace('/');
           }
         } 
@@ -59,7 +62,8 @@ const SignIn = () => {
   }
 
   return (
-    <SafeAreaView>
+    <SafeAreaView className="h-full">
+      
     <View className="flex-col justify-around gap-10">
       <View>
         <View className=" justify-center text-center mt-5">
@@ -102,6 +106,7 @@ const SignIn = () => {
         </TouchableOpacity>
       </View>
     </View>   
+    <Loader isLoading={loading} />
     <StatusBar hidden={false} barStyle="dark-content"/>   
   </SafeAreaView>
   )

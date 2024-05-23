@@ -58,7 +58,6 @@ const profile = () => {
           <View className="gap-1">
             <Text>{user? user.firstName : `No user name`} {user? user.lastName : `No user last name`}</Text>
             <Text>{user? user.email : `No user email`}</Text>
-            <Text>{isUser? isUser.email : `No user email`}</Text>
             <Text className="underline text-green-600">You are a Sender.</Text>
           </View>
         </View>
