@@ -26,20 +26,20 @@ import { router } from 'expo-router';
 
 const postRequestScreen = () => {
   const { user, isUser, setUser,  loading, setLoading } = useGlobalContext();
-  useEffect(() => {
-    const load = async () => {
-      try {
-        if(isUser){
-          const user = await fetchUserData(isUser.uid);
-          console.log(user);
-          setUser(user);
-        }
-      } catch (error) {
-        throw new Error(error);
-      }
-    }
-    load();
-  }, []);
+  // useEffect(() => {
+  //   const load = async () => {
+  //     try {
+  //       if(isUser){
+  //         const user = await fetchUserData(isUser.uid);
+  //         console.log(user);
+  //         setUser(user);
+  //       }
+  //     } catch (error) {
+  //       throw new Error(error);
+  //     }
+  //   }
+  //   load();
+  // }, []);
 
   const [image, setImage] = useState("");
 
@@ -89,7 +89,7 @@ const postRequestScreen = () => {
   const pickImage = async () => {
     // No permissions request is necessary for launching the image library
     let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: false,
       aspect: [4, 3],
       quality: 1,
@@ -101,11 +101,11 @@ const postRequestScreen = () => {
     return result.assets[0].uri;
   };
 
-  const uploadImage = async (metadata) => {
+  const uploadImage = async () => {
     try {
-      const filename = image.split('/').pop();
-      console.log('filename', filename)
-      const response = await uploadPackageImg(filename, metadata);
+      // const filename = image.split('/').pop();
+      // console.log('filename', filename)
+      const response = await uploadPackageImg(image,  'image/jpeg');
       console.log("response", response)
       return response
     } catch (error) {
@@ -129,8 +129,9 @@ const postRequestScreen = () => {
   //Post package request
   const postRequest = async () => {
     const packageObjId = hashCode(user.id);
-    setLoading(true);
+    
     try {
+      setLoading(true);
       console.log('Posting package request');
       const metadata = {};
       const img= await uploadImage(metadata);
@@ -149,7 +150,7 @@ const postRequestScreen = () => {
         destination: destinationValue, 
         from: pickUpLocationVal, 
         image: downloadUrl,
-        status: ''
+        status: 'pending'
       }
       console.log("package data to be submited", packageData)
       
@@ -159,7 +160,7 @@ const postRequestScreen = () => {
       console.log('package', user.id)
       console.log('package', user.id, 'package infos submited', )
       setLoading(false);
-      router.replace('./success/packageSuccessScreen');
+      router.replace('(screens)/success/packageSuccessScreen');
 
     } catch (error) {
       throw new Error(error)

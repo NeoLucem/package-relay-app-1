@@ -36,6 +36,7 @@ const SignIn = () => {
        if(!isUser){
         if(email==='' && password ===''){
           Alert.alert('Please fill in the fields');
+          setLoading(false);
         }else{
           await signInUser(email, password);
           const user = await AsyncStorage.getItem('user');

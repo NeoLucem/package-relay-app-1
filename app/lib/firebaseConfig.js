@@ -1,8 +1,8 @@
 import { initializeApp } from '@firebase/app';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, initializeAuth, getReactNativePersistence, signOut } from "@firebase/auth";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore, collection, setDoc, doc, getDoc, updateDoc } from "@firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL} from "@firebase/storage";
+import { getFirestore, collection, setDoc, doc, getDoc, updateDoc,  query, where, getDocs, deleteDoc  } from "@firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "@firebase/storage";
 // import {...} from "firebase/functions";
 // import {...} from "firebase/database";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -200,12 +200,15 @@ const createNewPackage = async (packageData) => {
 };
 
 //Upload package images
-const uploadPackageImg = async (file_url, metadata) =>{
+const uploadPackageImg = async (file_url) =>{
   try {
+    const res = await fetch(file_url);
+    const blob = await res.blob();
       //Create a storage reference
-      const packageImageRef = ref(FIREBASE_STORAGE, `package_images/${file_url}`)
+      // const packageImageRef = ref(FIREBASE_STORAGE, `package_images/${file_url}`)
+      const packageImageRef = ref(FIREBASE_STORAGE, "package_images/" + new Date().getTime());
       //Upload file
-      const response = await uploadBytes(packageImageRef, metadata,);
+      const response = await uploadBytes(packageImageRef, blob);
       console.log("File uploaded here is the response ", response)
       return response.ref.name;  
   } catch (error) {
@@ -225,12 +228,51 @@ const downloadImgUrl = async (image_uri) =>{
 }
 
 //Cancel package request, this function will delete the package document from the firestore reference
-const cancelPackageReq = async ()=>{}
+const cancelPackageReq = async (id)=>{
+  try {
+    //Create a reference to the firestore package collection 
+    const packageRef = collection(FIREBASE_DB_FIRESTORE, 'packages');
+    // Create a query against the collection.
+    const q = query(packageRef, where("status", "==", "pending"), where("package_id", "==", id));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    let docId = ''
+    querySnapshot.forEach((doc) => {
+      console.log(doc.data().package_id);
+      if(doc.data().package_id == id){
+        docId = doc.id;
+        console.log("Package request found ", doc.id, id);
+      }
+    });
+    const response = await deleteDoc(doc(FIREBASE_DB_FIRESTORE, "packages/"+docId));
+    console.log("Package request has been deleted with success ", response);
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 //Update package information (price)
 const updatePackageInfo = async ()=>{}
 
-
+//Fetch the package offer from the firestore package collection
+const fetchPackageOffer = async (id)=>{
+  try {
+    //Create a reference to the firestore package collection 
+    const packageRef = collection(FIREBASE_DB_FIRESTORE, 'packages');
+    // Create a query against the collection.
+    const q = query(packageRef, where("status", "==", "pending"), where("senderId", "==", id));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const packageData = [];
+    querySnapshot.forEach((doc) => {
+      packageData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('packages', JSON.stringify(packageData));
+    return packageData;
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 
 
@@ -259,5 +301,6 @@ export {
   uploadPackageImg,
   downloadImgUrl,
   cancelPackageReq,
-  updatePackageInfo  
+  updatePackageInfo,
+  fetchPackageOffer  
 };

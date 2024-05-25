@@ -22,6 +22,7 @@ const HomeScreen = () => {
     } = useGlobalContext();
 
   useEffect(() => {
+    
     if(!isAuth){
         setTimeout(() => {
           setIsAuth(false);
@@ -29,21 +30,25 @@ const HomeScreen = () => {
           // signOutAppWrite();
           setIsUser(null);
           router.replace('(auth)/signin');
+          setLoading(false);
         }, 0);
     }else{
+      
       const load = async () => {
         try {
           if(isUser){
+            setLoading(true);
             const user = await fetchUserData(isUser.uid);
             console.log(user);
             setUser(user);
+            setLoading(false);
           }
         } catch (error) {
           throw new Error(error);
         }
       }
       load();
-      setLoading(false);
+      
     }
   }, []);
 
