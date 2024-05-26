@@ -50,6 +50,7 @@ export default function RootLayout() {
           <Stack.Screen name="(screens)/traveler/home/checkAvailPackage" options={{ headerShown: true}}/>
           <Stack.Screen name="(screens)/traveler/home/postTrip" options={{ headerShown: true, headerBackTitleVisible: false, headerTitle:"Check available traveler"}}/>
           <Stack.Screen name="(screens)/success/packageSuccessScreen" options={{ headerShown: false}} />
+          <Stack.Screen name="(screens)/success/tripSuccessScreen" options={{ headerShown: false}} />
           <Stack.Screen name="(screens)/viewMyOfferScreen" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true}} />
           <Stack.Screen name="(screens)/viewSenderNotificationScreen" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true}} />
           <Stack.Screen name="(screens)/viewTripDetailScreen" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true}} />

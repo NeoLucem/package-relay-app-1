@@ -1,7 +1,7 @@
 import { initializeApp } from '@firebase/app';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, initializeAuth, getReactNativePersistence, signOut } from "@firebase/auth";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore, collection, setDoc, doc, getDoc, updateDoc,  query, where, getDocs, deleteDoc  } from "@firebase/firestore";
+import { getFirestore, collection, setDoc, doc, getDoc, updateDoc,  query, where, getDocs, deleteDoc, orderBy  } from "@firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "@firebase/storage";
 // import {...} from "firebase/functions";
 // import {...} from "firebase/database";
@@ -275,8 +275,80 @@ const fetchPackageOffer = async (id)=>{
 }
 
 
+/******************************************************************** 
+ *  In this portion of code,
+ *  only the function related to trip management will be produced 
+ ********************************************************************/
+
+//Function to create a new trip
+const createNewTrip = async (tripData) =>{
+  try {
+    //Reference to the Firestore collection where trips are stored
+    const tripsCollection = collection(FIREBASE_DB_FIRESTORE, 'trips');
+    //Create a new document in the trips collection with the user's UID
+    const response = await setDoc(doc(tripsCollection), tripData);
+    console.log(response);
+  } catch (error) {
+    console.error(error);
+    throw new Error(error);
+  }
+}
+
+//Function to fetch trip information
+const fetchTripInfo = async (userId)=>{
+  try {
+    //Create a reference to the firestore trip collection 
+    const tripRef = collection(FIREBASE_DB_FIRESTORE, 'trips');
+    // Create a query against the collection.
+    const q = query(tripRef, where("travelerId", "==", userId), where("status", "==", "pending"));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const tripData = [];
+    querySnapshot.forEach((doc) => {
+      tripData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('trips', JSON.stringify(tripData));
+    return tripData;
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+//Search available traveler by date, from and to 
+const searchAvailableTraveler = async (from, to)=>{
+  try {
+    //Create a reference to the firestore trip collection 
+    const tripRef = collection(FIREBASE_DB_FIRESTORE, 'trips');
+    // const newDate = new Date(date.toString())
+    // Create a query against the collection.
+    const q = query(tripRef, where("status", "==", "pending"), where("from", "==", from), where("to", "==", to), orderBy("date", "asc"));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const tripData = [];
+    querySnapshot.forEach((doc) => {
+      tripData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('tripsByQuery', JSON.stringify(tripData));
+    // console.warn("Available traveler has been found ", tripData);
+    return tripData;
+  } catch (error) {
+    throw new Error(error)
+  }
+
+}
+
+//Function to update trip information
+const updateTripInfo = async ()=>{}
 
 
+//Function to delete a trip
+const deleteTrip = async ()=>{}
+
+//Function to accept a carry request 
+const acceptCarryRequest = async ()=>{}
+
+//Function to decline a carry request
+const declineCarryRequest = async ()=>{}
 
 
 
@@ -302,5 +374,8 @@ export {
   downloadImgUrl,
   cancelPackageReq,
   updatePackageInfo,
-  fetchPackageOffer  
+  fetchPackageOffer,
+  createNewTrip,
+  fetchTripInfo,
+  searchAvailableTraveler 
 };
