@@ -1,15 +1,17 @@
-import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity, Modal } from 'react-native';
 import React, { useState, useEffect } from 'react';
 // import { SearchTravelerComponent } from '../../components/SearchTravelerComponent';
-import { fetchTripInfo, fetchUserData, searchAvailableTraveler } from '../lib/firebaseConfig';
+import { fetchTripInfo, fetchUserData, searchAvailableTraveler, sendCarryRequest, fetchPackageOffer } from '../lib/firebaseConfig';
 import { useGlobalContext } from '../context/GlobalProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import DateTimePickerModal from "react-native-modal-datetime-picker";
+// import DateTimePickerModal from "react-native-modal-datetime-picker";
 import RNPickerSelect from 'react-native-picker-select';
 import Loader from '../../components/Loader';
+
 const checkTravelerScreen = () => {
   const { isUser, user, setUser, loading, setLoading } = useGlobalContext();
-  const [trips, setTrips] = useState([]);  
+  const [trips, setTrips] = useState([]); 
+  const [modalVisible, setModalVisible] = useState(false); 
 
   //Fetch user data when the component is mounted
   useEffect(() => {
@@ -22,7 +24,7 @@ const checkTravelerScreen = () => {
           console.log(a);
           console.log(isUser.uid);
           setUser(a);
-          const response = await fetchTripInfo(user.id);
+          const response = await fetchTripInfo();
           const tripsJson = await AsyncStorage.getItem('trips');
           const tripsData = JSON.parse(tripsJson);
           setTrips(tripsData);
@@ -69,11 +71,6 @@ const checkTravelerScreen = () => {
 
   ]
 
-  //Search states
-  // const [ date, setDate ] = useState("");
-  // const [ from, setFrom ] = useState("");
-  // const [ to, setTo ] = useState("");
-
   //Send request 
   const searchTrip = async () => {
     try {
@@ -95,64 +92,106 @@ const checkTravelerScreen = () => {
     }
   }
 
-  //Date and time modal
-  // const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
-  // const [ndate, setNDate] = useState("");
-
-  // const showDatePicker = () => {
-  //   setDatePickerVisibility(true);
-  // };
-
-  // const hideDatePicker = () => {
-  //   setDatePickerVisibility(false);
-  // };
-
-  // const handleConfirm = (date) => {
-  //     const year = date.getFullYear();
-  //     const month = date.getMonth() + 1; // Months are 0-indexed in JavaScript
-  //     const day = date.getDate();
-  //     const newDate = `${day}-${month}-${year}`;
-  //     setNDate(newDate);
-  //     console.log(`A date has been picked: ${day}-${month}-${year}`);
-  //     hideDatePicker();
-  // };
-
-
+  //Send carry request to a traveler
+  const sendRequest = async (tripId, travelerId, packageID) => {
+    try {
+      if(isUser){
+        console.log(isUser.uid);
+        console.log("Send carry request", `Trip id: ${tripId}`, `User id: ${isUser.uid}`, `Traveler id: ${travelerId}`);
+        const request = {
+          tripId: tripId,
+          userId: isUser.uid,
+          travelerId: travelerId,
+          status: "pending",
+          packageId: packageID,
+        }
+        const response = await sendCarryRequest(request);
+        console.log(response);
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+    
+  }
 
   // const fakeData = [
   //   {
-  //     name: 'John Oh',
+  //     package: 'John Doe the traveler',
   //     date: '2022-01-01',
   //     from: "Accra",
   //     to: "Lagos",
-  //     weight: 10,
-  //     status: "pending"
   //   },
   //   {
-  //     name: 'John My',
+  //     package: 'John  the traveler',
   //     date: '2022-01-01',
-  //     from: "Abidjan",
+  //     from: "Accra",
   //     to: "Lagos",
-  //     weight: 10,
-  //     status: "pending"
   //   },
   //   {
-  //     name: 'John Holly',
+  //     package: 'John ',
   //     date: '2022-01-01',
-  //     from: "Brazzaville",
+  //     from: "Accra",
   //     to: "Lagos",
-  //     weight: 10,
-  //     status: "pending"
   //   },
   //   {
-  //     name: 'John God',
+  //     package: 'John traveler',
   //     date: '2022-01-01',
-  //     from: "Abuja",
+  //     from: "Accra",
   //     to: "Lagos",
-  //     weight: 10,
-  //     status: "pending"
+  //   },
+  //   {
+  //     package: 'the traveler',
+  //     date: '2022-01-01',
+  //     from: "Accra",
+  //     to: "Lagos",
   //   },
   // ]
+
+
+
+  //Fetch offer from the package collection to display in the modal
+  
+  const [packages, setPackages] = useState([]);
+  const getPackageFromOffer = async () => {
+    try {
+      if(isUser){
+        const response = await fetchPackageOffer(isUser.uid);
+        console.log(response);
+        const packagesJson = await AsyncStorage.getItem('packages');
+        const packagesData = JSON.parse(packagesJson);
+        setPackages(packagesData);
+        return response;
+      }
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  //Push the package id to the carry request
+  const pushPackageId = async (trip, traveler) => {
+    try {
+      getPackageFromOffer();
+      AsyncStorage.setItem('tripId', JSON.stringify(trip));
+      AsyncStorage.setItem('travelerId', JSON.stringify(traveler));
+      setModalVisible(true);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
+  const send = async (id) => {
+    try {
+      console.log('send', id);
+      const tripIdJson = await AsyncStorage.getItem('tripId');
+      const travelerIdJson = await AsyncStorage.getItem('travelerId');
+      const tripIdVal = JSON.parse(tripIdJson);
+      const travelerIdVal = JSON.parse(travelerIdJson);
+      console.log(`Trip id: ${tripIdVal}`, `Traveler id: ${travelerIdVal}`, `Package id: ${id}`);
+      await sendRequest(tripIdVal, travelerIdVal, id);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
 
   return (
     <SafeAreaView className="h-full">
@@ -223,18 +262,19 @@ const checkTravelerScreen = () => {
             <Text className="text-black">{item.date}</Text>
             <Text className="text-black">{item.weight} KG</Text>
             <Text className="text-black">Status: {item.status}</Text>
+            <Text className="text-black">traveler: {item.travelerName}</Text>
           </View>
           <View className="gap-2 justify-center items-center mb-1">
-            <TouchableOpacity style={{marginLeft: 0, marginTop: 0}}
+            <TouchableOpacity 
+              onPress={()=>pushPackageId(item.tripId, item.travelerId)}
+              style={{marginLeft: 0, marginTop: 0}}
               className="p-4 mr-3 rounded-xl border-2  border-black-100 min-h-[24px] w-[96%] bg-white flex justify-center items-center">
               <Text className="text-black">Send Message</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              // onPress={display}
-              // onPress={()=>{
-              //   cancelPackageReq(item.package_id);
-              //   refetch();
-              // }}
+              onPress={()=>{
+                sendRequest(item.tripId, item.travelerId);
+              }}
               className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-black flex justify-center items-center">
               <Text className="text-white">Send request</Text>
             </TouchableOpacity>
@@ -242,9 +282,6 @@ const checkTravelerScreen = () => {
         </View>
           )
         }
-        // ListHeaderComponent={()=>(        
-
-        // )}
         ListEmptyComponent={()=>(
           <>
           <View>
@@ -253,6 +290,54 @@ const checkTravelerScreen = () => {
           </>
         )}
       />
+      <View style={styles.centeredView}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+          setModalVisible(!modalVisible);
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Select the package to send the request</Text>
+            <FlatList
+              data={packages}
+              keyExtractor={(item) => item.image}
+              renderItem={({ item })=>(
+                <View className="justify-center items-center w-full mb-2">
+                  <View className="flex-row items-center justify-between w-full gap-2">
+                    <View className="justify-start text-left">
+                      <Text>{item.package_desc}</Text>
+                      <Text className="text-black">From {item.from}</Text>
+                      <Text className="text-black">To {item.destination}</Text>
+                      <Text className="text-black">Before {item.date? item.date : 'no date'}</Text>
+                    </View>                  
+                    <TouchableOpacity 
+                      onPress={()=>{
+                          console.log('clicked', item.package_id)
+                          send(item.package_id)
+                        }
+                      }
+                      className="p-4 rounded-xl border-2 border-black-100 min-h-[20px] w-[40%] bg-black flex justify-center items-center"
+                    >
+                      <Text className="text-white">More</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                
+              )}
+            />
+            <TouchableOpacity
+              style={[styles.button, styles.buttonClose]}
+              onPress={() => setModalVisible(!modalVisible)}>
+              <Text style={styles.textStyle}>Hide Modal</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+      </View>
       <Loader isLoading={loading} />
     </SafeAreaView>
   )
@@ -279,6 +364,51 @@ const pickerSelectStyles = StyleSheet.create({
     borderRadius: 8,
     color: 'black',
     paddingRight: 30, // to ensure the text is never behind the icon
+  },
+});
+
+const styles = StyleSheet.create({
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    width: '96%',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  button: {
+    borderRadius: 20,
+    padding: 10,
+    elevation: 2,
+  },
+  buttonOpen: {
+    backgroundColor: '#F194FF',
+  },
+  buttonClose: {
+    backgroundColor: '#2196F3',
+  },
+  textStyle: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 

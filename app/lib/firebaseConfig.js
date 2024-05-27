@@ -274,6 +274,41 @@ const fetchPackageOffer = async (id)=>{
   }
 }
 
+//Fetch single package infos or data
+const fetchSinglePackage = async (id)=>{
+  try {
+    //Create a reference to the firestore package collection 
+    const packageRef = collection(FIREBASE_DB_FIRESTORE, 'packages');
+    // Create a query against the collection.
+    const q = query(packageRef, where("package_id", "==", id));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const packageData = [];
+    querySnapshot.forEach((doc) => {
+      packageData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('singlePackage', JSON.stringify(packageData));
+    return packageData;
+  } catch (error) {
+    throw new Error(error)
+  }
+
+}
+
+//Send carry request to a traveler 
+const sendCarryRequest = async (requestData)=>{
+  try {
+    //Create a reference to the firestore package collection
+    const requestCollection = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    console.log(requestCollection);
+    //Create a new docment in the request collection with the senderId, the travelerId and the package id, the trip id
+    const response = await setDoc(doc(requestCollection), requestData);
+    console.log(response);
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
 
 /******************************************************************** 
  *  In this portion of code,
@@ -295,12 +330,12 @@ const createNewTrip = async (tripData) =>{
 }
 
 //Function to fetch trip information
-const fetchTripInfo = async (userId)=>{
+const fetchTripInfo = async ()=>{
   try {
     //Create a reference to the firestore trip collection 
     const tripRef = collection(FIREBASE_DB_FIRESTORE, 'trips');
     // Create a query against the collection.
-    const q = query(tripRef, where("travelerId", "==", userId), where("status", "==", "pending"));
+    const q = query(tripRef, where("status", "==", "pending"));
     //Get the documents from the query
     const querySnapshot = await getDocs(q);
     const tripData = [];
@@ -340,18 +375,39 @@ const searchAvailableTraveler = async (from, to)=>{
 //Function to update trip information
 const updateTripInfo = async ()=>{}
 
-
 //Function to delete a trip
 const deleteTrip = async ()=>{}
-
-//Function to accept a carry request 
-const acceptCarryRequest = async ()=>{}
 
 //Function to decline a carry request
 const declineCarryRequest = async ()=>{}
 
+/******************************************************************** 
+ *  In this portion of code,
+ *  only the function related to request management will be produced 
+ ********************************************************************/
 
+//Function to fetch request
+const fetchCarryRequest = async (userId)=>{
+  try {
+    //Create a reference to the firestore request collection 
+    const requestRef = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    // Create a query against the collection.
+    const q = query(requestRef, where("status", "==", "pending"), where("travelerId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const requestData = [];
+    querySnapshot.forEach((doc) => {
+      requestData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('requests', JSON.stringify(requestData));
+    return requestData;
+  } catch (error) {
+    throw new Error(error)
+  }
+} 
 
+//Function to accept a carry request 
+const acceptCarryRequest = async ()=>{}
 
 
 /******************************************************************** 
@@ -377,5 +433,8 @@ export {
   fetchPackageOffer,
   createNewTrip,
   fetchTripInfo,
-  searchAvailableTraveler 
+  searchAvailableTraveler,
+  sendCarryRequest,
+  fetchCarryRequest,
+  fetchSinglePackage 
 };

@@ -83,7 +83,6 @@ const viewMyOfferScreen = () => {
         renderItem={({ item })=>(
             <View className="rounded-xl justify-start  border-black border-2 gap-1 mt-3 ml-1 w-[96%]">
               <View className="ml-4 justify-start gap-1">
-                {/* <Image source={require('../../assets/images/send-img.jpg')} className="w-[90%] h-[200px] rounded-xl" resizeMode='contain'/> */}
                 <Image source={{uri: item.image}} className="w-[90%] h-[200px] rounded-xl" resizeMode='contain'/>
                 <Text className="text-black">{item.package_desc}</Text>
                 <Text className="text-black">From {item.from} To {item.destination}</Text>
