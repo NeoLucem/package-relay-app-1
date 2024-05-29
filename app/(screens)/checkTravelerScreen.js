@@ -92,6 +92,23 @@ const checkTravelerScreen = () => {
     }
   }
 
+  //Generate a hashed trip id based on the user id and the current date
+  function generateUniqueRequestId(userId) {
+    // Get the current date and time in milliseconds
+    const now = Date.now().toString(36); // Convert to base 36 for compact representation
+  
+    // Generate a random string of 6 characters
+    const randomStr = Math.random().toString(36).slice(2, 6);
+  
+    // Ensure the userId is a part of the tripId and pad it if necessary
+    const userIdPart = userId.slice(0, 4).padEnd(4, '0'); // Take first 4 characters of userId
+  
+    // Combine to form the tripId
+    const requestId = `${now}${userIdPart}${randomStr}`.slice(0, 16); // Ensure it's 16 characters long
+  
+    return requestId;
+  }
+
   //Send carry request to a traveler
   const sendRequest = async (tripId, travelerId, packageID) => {
     try {
@@ -104,6 +121,7 @@ const checkTravelerScreen = () => {
           travelerId: travelerId,
           status: "pending",
           packageId: packageID,
+          requestId: generateUniqueRequestId(isUser.uid)
         }
         const response = await sendCarryRequest(request);
         console.log(response);

@@ -1,14 +1,45 @@
-import { StyleSheet, Image, View, Modal, Text, SafeAreaView, FlatList, TouchableOpacity } from 'react-native';
+import { StyleSheet, Image, View, Modal, Text, SafeAreaView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useGlobalContext } from '../../../context/GlobalProvider';
-import { fetchCarryRequest, fetchSinglePackage } from '../../../lib/firebaseConfig';
+import { 
+  fetchCarryRequest, 
+  fetchSinglePackage, 
+  declineCarryRequest,
+  acceptCarryRequest 
+} from '../../../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Loader from '../../../../components/Loader';
 
 const viewCarryRequest = () => {
   const { isUser, setUser, loading, setLoading } = useGlobalContext();
   const [ requests, setRequests ] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [packageInfo, setPackageInfo] = useState([]);
+  const [refreshing, setRefreshing] = useState(false);
+
+  //Refresh request data
+  const refetch = async () => {
+    try {
+        setLoading(true);
+        const response = await fetchCarryRequest(isUser.uid);
+        const requestsJson = await AsyncStorage.getItem('requests');
+        const requestsData = JSON.parse(requestsJson);
+        setRequests(requestsData);
+        console.log("Test display trip" , requestsData);
+        setRequests(requestsData);
+        setLoading(false);
+        return response;
+    } catch (error) {
+        throw new Error(error);
+    }
+  };
+
+  //Refresh request data
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     console.log(isUser.uid);
@@ -44,13 +75,38 @@ const viewCarryRequest = () => {
     }
   }
 
+  //Decline request
+  const declineRequest = async (id) => {
+    try {
+      setLoading(true);
+      console.log('decline request', id)
+      const response = await declineCarryRequest(id);
+      console.log(response);
+      setLoading(false);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+  //Accept request
+  const acceptRequest = async (id) => {
+    try {
+      setLoading(true);
+      console.log('accept request', id)
+      const response = await acceptCarryRequest(id);
+      console.log(response);
+      setLoading(false);
+    } catch (error) {
+      throw new Error(error);
+    }
+  }
+
 
   return (
     <SafeAreaView className="h-full">
       <FlatList 
         data={requests}
         className="ml-2 mt-1 h-full"
-        keyExtractor={(item) => item.tripId}
+        keyExtractor={(item) => item.requestId}
         renderItem={({ item })=>(
             <View className="rounded-xl justify-start  border-black border-2 gap-1 mt-3 ml-1 w-[96%]">
               <View className="ml-4 justify-start gap-1">
@@ -59,6 +115,7 @@ const viewCarryRequest = () => {
                 <Text className="text-black">{item.userId}</Text>
                 <Text className="text-black">{item.packageId}</Text>
                 <Text className="text-black">{item.tripId}</Text>
+                <Text className="text-black">{item.requestId}</Text>
               </View>
 
               <View className="gap-2 justify-center items-center mb-1">
@@ -73,10 +130,20 @@ const viewCarryRequest = () => {
                   <Text className="text-black">View Package</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
+                  onPress={() => {
+                    console.log('accept request')
+                    acceptRequest(item.requestId)
+                    refetch();
+                  }}
                   className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-black flex justify-center items-center">
                   <Text className="text-white">Accept request</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
+                <TouchableOpacity
+                  onPress={() => {
+                    console.log('cancel request')
+                    declineRequest(item.requestId)
+                    refetch();
+                  }} 
                   className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-gray-400 flex justify-center items-center">
                   <Text className="text-white">Cancel</Text>
                 </TouchableOpacity>
@@ -91,6 +158,7 @@ const viewCarryRequest = () => {
           </View>
           </>
         )}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
       <View style={styles.centeredView}>
       <Modal
@@ -125,6 +193,7 @@ const viewCarryRequest = () => {
         </View>
       </Modal>
     </View>
+    <Loader isLoading={loading} />
     </SafeAreaView>
   )
 }

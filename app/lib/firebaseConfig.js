@@ -251,6 +251,9 @@ const cancelPackageReq = async (id)=>{
   }
 }
 
+
+
+
 //Update package information (price)
 const updatePackageInfo = async ()=>{}
 
@@ -295,19 +298,8 @@ const fetchSinglePackage = async (id)=>{
 
 }
 
-//Send carry request to a traveler 
-const sendCarryRequest = async (requestData)=>{
-  try {
-    //Create a reference to the firestore package collection
-    const requestCollection = collection(FIREBASE_DB_FIRESTORE, 'requests');
-    console.log(requestCollection);
-    //Create a new docment in the request collection with the senderId, the travelerId and the package id, the trip id
-    const response = await setDoc(doc(requestCollection), requestData);
-    console.log(response);
-  } catch (error) {
-    throw new Error(error);
-  }
-}
+
+
 
 
 /******************************************************************** 
@@ -378,8 +370,7 @@ const updateTripInfo = async ()=>{}
 //Function to delete a trip
 const deleteTrip = async ()=>{}
 
-//Function to decline a carry request
-const declineCarryRequest = async ()=>{}
+
 
 /******************************************************************** 
  *  In this portion of code,
@@ -406,8 +397,63 @@ const fetchCarryRequest = async (userId)=>{
   }
 } 
 
-//Function to accept a carry request 
-const acceptCarryRequest = async ()=>{}
+//Send carry request to a traveler 
+const sendCarryRequest = async (requestData)=>{
+  try {
+    //Create a reference to the firestore package collection
+    const requestCollection = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    console.log(requestCollection);
+    //Create a new docment in the request collection with the senderId, the travelerId and the package id, the trip id
+    const response = await setDoc(doc(requestCollection), requestData);
+    console.log(response);
+  } catch (error) {
+    throw new Error(error);
+  }
+}
+
+//Decline Carry request 
+const declineCarryRequest = async (request_id) => {
+  try {
+    const querySnapshot = await getDocs(collection(FIREBASE_DB_FIRESTORE, "requests"));
+    let docId = '';
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      console.log(doc.id, " => ", doc.data().requestId);
+      if(doc.data().requestId == request_id){
+        console.log("Request found ", doc.id, request_id);
+        docId = doc.id;
+      }
+    });
+    //Update the request document from the firestore reference
+    const requestDoc = doc(FIREBASE_DB_FIRESTORE, "requests/"+docId);
+    await updateDoc(requestDoc, {status: 'declined'});
+    console.log("Request has been declined with success ", request_id, docId)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+//Accept Carry request
+const acceptCarryRequest = async (request_id) => {
+  try {
+    const querySnapshot = await getDocs(collection(FIREBASE_DB_FIRESTORE, "requests"));
+    let docId = '';
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      console.log(doc.id, " => ", doc.data().requestId);
+      if(doc.data().requestId == request_id){
+        console.log("Request found ", doc.id, request_id);
+        docId = doc.id;
+      }
+    });
+    //Update the request document from the firestore reference
+    const requestDoc = doc(FIREBASE_DB_FIRESTORE, "requests/"+docId);
+    await updateDoc(requestDoc, {status: 'accepted'});
+    console.log("Request has been declined with success ", request_id, docId)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
 
 
 /******************************************************************** 
@@ -436,5 +482,7 @@ export {
   searchAvailableTraveler,
   sendCarryRequest,
   fetchCarryRequest,
-  fetchSinglePackage 
+  fetchSinglePackage,
+  declineCarryRequest,
+  acceptCarryRequest 
 };
