@@ -20,119 +20,21 @@ import {
 import {useNavigation} from '@react-navigation/native'
 import { useGlobalContext } from '../context/GlobalProvider';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { fetchMessagesForChat } from '../lib/firebaseConfig';
-// import {  sendMessage } from '../lib/firebaseConfig';
+import { useLocalSearchParams } from 'expo-router';
 
-  const DiscussionScreen = () => {
+const discussion = () => {
+    const { userName, chat_id } = useLocalSearchParams();
     const { isUser, user } = useGlobalContext();
     const [chats, setChats] = useState([]);
     const [chatIds, setChatIds] = useState([]);
     const navigation = useNavigation();
     const [chatUser] = useState({
-      name: 'Robert Henry',
+      name: userName,
       profile_image: 'https://randomuser.me/api/portraits/men/0.jpg',
       last_seen: 'online',
     });
-  
-    const [currentUser] = useState({
-      name: 'John Doe',
-    });
-  
-    const [messages, setMessages] = useState([
-      { sender: 'John Doe', message: 'Hey there!', time: '6:01 PM' },
-      {
-        sender: 'Robert Henry',
-        message: 'Hello, how are you doing?',
-        time: '6:02 PM',
-      },
-      {
-        sender: 'John Doe',
-        message: 'I am good, how about you?',
-        time: '6:02 PM',
-      },
-      {
-        sender: 'John Doe',
-        message: `😊😇`,
-        time: '6:02 PM',
-      },
-      {
-        sender: 'Robert Henry',
-        message: `Can't wait to meet you.`,
-        time: '6:03 PM',
-      },
-      {
-        sender: 'John Doe',
-        message: `That's great, when are you coming?`,
-        time: '6:03 PM',
-      },
-      {
-        sender: 'Robert Henry',
-        message: `This weekend.`,
-        time: '6:03 PM',
-      },
-      {
-        sender: 'Robert Henry',
-        message: `Around 4 to 6 PM.`,
-        time: '6:04 PM',
-      },
-      {
-        sender: 'John Doe',
-        message: `Great, don't forget to bring me some mangoes.`,
-        time: '6:05 PM',
-      },
-      {
-        sender: 'Robert Henry',
-        message: `Sure!`,
-        time: '6:05 PM',
-      },
-    ]);
-  
     const [inputMessage, setInputMessage] = useState('');
-    const [ newMessage, setNewMessage ] = useState('');
-  
-    function getTime(date) {
-      var hours = date.getHours();
-      var minutes = date.getMinutes();
-      var ampm = hours >= 12 ? 'PM' : 'AM';
-      hours = hours % 12;
-      hours = hours ? hours : 12;
-      minutes = minutes < 10 ? '0' + minutes : minutes;
-      var strTime = hours + ':' + minutes + ' ' + ampm;
-      return strTime;
-    }
-  
-    function sendMessage() {
-      if (inputMessage === '') {
-        return setInputMessage('');
-      }
-      let t = getTime(new Date());
-      setMessages([
-        ...messages,
-        {
-          sender: currentUser.name,
-          message: inputMessage,
-          time: t,
-        },
-      ]);
-      setInputMessage('');
-    }
 
-
-    //Function to handle the send message
-    // const handleSendMessage = async () => {
-
-    //   if (inputMessage === '') {
-    //      return Alert.alert('Message cannot be empty!');
-    //   }
-       
-    //   if (newMessage.trim()) {
-    //     await sendMessage(discussionId, isUser.uid, isUser.name, newMessage);
-    //     setNewMessage(''); // Clear the input field after sending the message
-    //     const messagesData = await fetchMessagesForChat();
-    //     setMessages(messagesData); // Update the messages state to reflect the new message
-    //   }
-    // };
-  
     useEffect(() => {
       navigation.setOptions({
         title: '',
@@ -185,7 +87,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
       //Fetch messages
       const loadMessages = async () => {
         try {
-          console.log('Chat Screen Loaded', chatIds);
+          console.log('Chat Screen Loaded', chat_id);
           const response = await AsyncStorage.getItem('messages');
           const messagesJson = JSON.parse(response);
           console.log('Messages', messagesJson);
@@ -198,8 +100,23 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
       loadMessages();
     }, []);
 
-    return (
-      <SafeAreaView className="flex-1 h-full">
+    //Handle message sending
+    const handleSendMessage = async () => {
+      try {
+        const message = {
+          id: chats.length + 1,
+          message: inputMessage,
+          senderId: isUser.uid,
+          time: new Date(),
+        };
+        console.log('Message', message);
+        setInputMessage('');
+      } catch (error) {
+        throw new Error(error);
+      }
+    }
+  return (
+    <SafeAreaView className="flex-1 h-full">
         <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
           <View style={styles.container}>
             <FlatList
@@ -207,7 +124,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
               style={{ backgroundColor: '#f2f2ff' }}
               inverted={true}
               data={chats}
-              // data={JSON.parse(JSON.stringify(messages)).reverse()}
               renderItem={({ item }) => (
                 <TouchableWithoutFeedback>
                   <View style={{ marginTop: 6 }}>
@@ -234,7 +150,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
                           fontSize: 16,
                         }}
                       >
-                        {item.text}
+                        {item.message}
                       </Text>
                       <Text
                         style={{
@@ -243,7 +159,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
                           alignSelf: 'flex-start',
                         }}
                       >
-                        {new Date(item.timestamp.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+                        {new Date(item.time.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
                       </Text>
                     </View>
                   </View>
@@ -259,14 +175,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
                       placeholder='Message'
                       placeholderTextColor={'#000'}
                       onChangeText={(text) => setInputMessage(text)}
-                      onSubmitEditing={() => {
-                        sendMessage();
-                      }}
+                      enablesReturnKeyAutomatically={true}
+                      autoCorrect={true}
+                      multiline={true}
+                      scrollEnabled={true}
                     />
                     <TouchableOpacity
                       style={styles.messageSendView}
                       onPress={() => {
-                        sendMessage();
+                        handleSendMessage();
                       }}
                     >
                       <Icon name='send' type='material' />
@@ -280,38 +197,37 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
         </TouchableWithoutFeedback>
         <StatusBar hidden={false} barStyle="dark-content"/> 
       </SafeAreaView>
-    )
-  }
+  )
+}
 
-  const styles = StyleSheet.create({
-    headerLeft: {
-      paddingVertical: 4,
-      paddingHorizontal: 10,
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
-    userProfileImage: { height: '100%', aspectRatio: 1, borderRadius: 100 },
-    container: {
-      flex: 1,
-      backgroundColor: '#f2f2ff',
-    },
-    messageInputView: {
-      display: 'flex',
-      flexDirection: 'row',
-      marginHorizontal: 14,
-      backgroundColor: '#fff',
-      borderRadius: 4,
-    },
-    messageInput: {
-      height: 40,
-      flex: 1,
-      paddingHorizontal: 10,
-    },
-    messageSendView: {
-      paddingHorizontal: 10,
-      justifyContent: 'center',
-    },
-  });
-  
-  export default DiscussionScreen
+const styles = StyleSheet.create({
+  headerLeft: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  userProfileImage: { height: '100%', aspectRatio: 1, borderRadius: 100 },
+  container: {
+    flex: 1,
+    backgroundColor: '#f2f2ff',
+  },
+  messageInputView: {
+    display: 'flex',
+    flexDirection: 'row',
+    marginHorizontal: 14,
+    backgroundColor: '#fff',
+    borderRadius: 4,
+  },
+  messageInput: {
+    height: 40,
+    flex: 1,
+    paddingHorizontal: 10,
+  },
+  messageSendView: {
+    paddingHorizontal: 10,
+    justifyContent: 'center',
+  },
+});
+export default discussion

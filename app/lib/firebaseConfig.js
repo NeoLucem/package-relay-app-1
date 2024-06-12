@@ -457,6 +457,155 @@ const acceptCarryRequest = async (request_id) => {
 
 
 /******************************************************************** 
+ *  In this portion of code,
+ *  only the function related to chat management will be produced 
+ ********************************************************************/
+
+//Get every chat
+const getChats = async ()=>{
+  try {
+    //Create a reference to the firestore chat collection
+    const chatRef = collection(FIREBASE_DB_FIRESTORE, 'chats');
+    // Create a query against the collection.
+    const q = query(chatRef);
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const chatData = [];
+    // const chatParticipants = [];
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      chatData.push(doc.data());
+      console.log(" 478 Chat data ", chatData);
+      //Stringify the chat data and store it in the async storage
+      const chatDataJson = JSON.stringify(chatData);
+      console.log(" 481 Chat data json ", chatDataJson);
+      AsyncStorage.setItem('chats', chatDataJson);
+    });
+
+    //Get the json data from the chat data collection 
+    const chatRefJson = await AsyncStorage.getItem('chats');
+    console.log('487 Chat data json from async storage ', chatRefJson);
+    //Parse the json data
+    const parsedData = JSON.parse(chatRefJson);
+    console.log('490 Chat data json from async storage ', parsedData);
+    parsedData.map((chat)=>{
+      console.log(chat);
+      console.log(chat.participants)
+      chat.participants.map((participant)=>{
+        console.log(participant)
+        if(participant === 'bdEiwgz1owf6lP7aSNBckGmn2fQ2'){
+          console.log("498 Chat participant found ", participant)
+        }
+      })
+    })
+    // const chatDataJson = JSON.parse(chatRefJson);
+
+    // chatData.forEach((chat)=>{
+    //   console.log("482 Singles Chat data ", chat);
+    //   console.log("483 Singles Chat data ", chat.participants);
+    //   chatParticipants= chat.participants;
+    //   console.log("485 Chat participants ", chatParticipants);
+    // });
+    // chatParticipants.forEach((participant)=>{
+    //   console.log("488 Single participant ", participant);
+    // })
+  } catch (error) {
+    console.warn(error)
+    throw new Error(error)
+  }
+}
+
+//Fetch messages for a single chat 
+const fetchMessagesForChat = async (chatId) => {
+  try {
+    const messagesSnapshot =  collection(FIREBASE_DB_FIRESTORE, 'chats', chatId, 'messages');
+    const querySnapshot = await getDocs(messagesSnapshot);
+    const messages = [];
+    querySnapshot.forEach((doc) => {
+      messages.push({ id: doc.id, ...doc.data() });
+    });
+    console.log("Messages: ", messages);
+    AsyncStorage.setItem('messages', JSON.stringify(messages));
+  } catch (error) {
+    console.error("Error fetching messages: ", error);
+    return [];
+  }
+};
+
+//test function 
+const testFetchChats = async (userId) => {
+  try {
+    const chatRef = collection(FIREBASE_DB_FIRESTORE, 'chats');
+    console.log(chatRef);
+    const q = query(chatRef, where("participants", "array-contains", userId));
+    const querySnapshot = await getDocs(q);
+    const chatData = [];
+    querySnapshot.forEach((doc) => {
+      console.log('Data about the chats collection', { id: doc.id, ...doc.data() })
+      chatData.push({ id: doc.id, ...doc.data() });
+      console.log('Array of chats to be pushed ',chatData)
+    });
+    AsyncStorage.setItem('chats', JSON.stringify(chatData));    
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+//Function to send a message 
+const sendMessage = async (chatId, userId, userName, messageText) => {
+  try {
+    //Create a reference to the firestore chats collection
+    const messageRef = collection(FIREBASE_DB_FIRESTORE, 'chats', chatId, 'messages');
+
+    //Create a message object
+    const messageData = {
+      senderId: userId,
+      senderName: userName,
+      text: messageText,
+      createdAt: new Date()
+    };
+
+    // Add the message to the messages subcollection
+    await addDoc(messageRef, newMessage);
+
+    // Update the lastMessage field in the chat document
+    const chatRef = doc(FIREBASE_DB_FIRESTORE, 'chats', chatId);
+    await updateDoc(chatRef, {
+      lastMessage: {
+        ...messageData,
+        timestamp: serverTimestamp(),
+      },
+    });
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+
+//Fetch the chats from the chats collection by using the logged in user id
+const fetchAllChats = async (userId, userName) => {
+  try {
+    //Create a reference to the firestore chat collection
+    const chatsRef = collection(FIREBASE_DB_FIRESTORE, 'chats');
+    // Create a query against the collection.
+    const q = query(chatsRef, where("participants", "array-contains", { 'userId': userId, 'userName': userName, 'status': 'online' }));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    console.log("Query snapshot ", querySnapshot);
+    const chatData = [];
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      chatData.push({ id: doc.id, ...doc.data() });
+    }); 
+    return chatData;
+  } catch (error) {
+    console.warn(error)
+    throw new Error(error)
+    
+  }
+}
+
+/******************************************************************** 
  *  Export of the public services
  ********************************************************************/
 export { 
@@ -484,5 +633,12 @@ export {
   fetchCarryRequest,
   fetchSinglePackage,
   declineCarryRequest,
-  acceptCarryRequest 
+  acceptCarryRequest,
+  getChats,
+  testFetchChats,
+  fetchMessagesForChat,
+  sendMessage,
+  
+  //test new implementation
+  fetchAllChats
 };

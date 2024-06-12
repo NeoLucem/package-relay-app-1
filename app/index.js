@@ -38,9 +38,9 @@ const HomeScreen = () => {
         try {
           if(isUser){
             setLoading(true);
-            const user = await fetchUserData(isUser.uid);
-            console.log(user);
-            setUser(user);
+            const loggedUser = await fetchUserData(isUser.uid);
+            console.log('Test display user infos line 42 on index.js',loggedUser);
+            setUser(loggedUser);
             setLoading(false);
           }
         } catch (error) {
@@ -48,7 +48,6 @@ const HomeScreen = () => {
         }
       }
       load();
-      
     }
   }, []);
 
@@ -84,6 +83,7 @@ const HomeScreen = () => {
                       onPress={()=>{
                         if(user.type === 'sender'){
                           router.replace('./(sender)/home')
+                          console.log('Test display user infos line 88 on index.js',user)
                         }else{
                           updateUserType(isUser.uid, 'sender');
                         router.replace('./(sender)/home')

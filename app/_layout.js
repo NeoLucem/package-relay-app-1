@@ -58,6 +58,7 @@ export default function RootLayout() {
           <Stack.Screen name="(screens)/checkTravelerScreen" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true, headerTitle:"Check available traveler"}} />
           <Stack.Screen name="(screens)/postRequestScreen" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true, headerTitle:"Create request"}} />
           <Stack.Screen name="(screens)/discussionScreen" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true}} />
+          <Stack.Screen name="(screens)/[discussionScreen]" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true}} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(traveler)" options={{ headerShown: false }} />
           <Stack.Screen name="(sender)" options={{ headerShown: false }} />
