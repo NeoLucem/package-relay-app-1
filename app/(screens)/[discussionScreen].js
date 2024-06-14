@@ -19,8 +19,10 @@ import {
   import { Icon } from 'react-native-elements';
 import {useNavigation} from '@react-navigation/native'
 import { useGlobalContext } from '../context/GlobalProvider';
+import { sendMessage, fetchSingleChat } from '../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useLocalSearchParams } from 'expo-router';
+import { v4 as uuidv4 } from 'uuid';
 
 const discussion = () => {
     const { userName, chat_id } = useLocalSearchParams();
@@ -88,10 +90,12 @@ const discussion = () => {
       const loadMessages = async () => {
         try {
           console.log('Chat Screen Loaded', chat_id);
-          const response = await AsyncStorage.getItem('messages');
-          const messagesJson = JSON.parse(response);
-          console.log('Messages', messagesJson);
-          setChats(messagesJson);
+          // const response = await AsyncStorage.getItem('messages');
+          // const messagesJson = JSON.parse(response);
+          // console.log('Messages', messagesJson);
+          // setChats(messagesJson);
+          const messages = await fetchSingleChat(chat_id)
+          setChats(messages);
         } catch (error) {
           throw new Error(error);
         }
@@ -102,15 +106,29 @@ const discussion = () => {
 
     //Handle message sending
     const handleSendMessage = async () => {
+      if (inputMessage === '') {
+        return Alert.alert('Message', 'Please enter a message');
+      }
+      const message = {
+        id: ()=> uuidv4(),
+        message: inputMessage,
+        userId: isUser.uid,
+        time: new Date(),
+      };
+      // Update UI immediately
+      setChats(previousChats => [message, ...previousChats]);
+      setInputMessage('');
       try {
-        const message = {
-          id: chats.length + 1,
-          message: inputMessage,
-          senderId: isUser.uid,
-          time: new Date(),
-        };
         console.log('Message', message);
-        setInputMessage('');
+
+        const response = await sendMessage(chat_id, isUser.uid, message.message, userName);
+        console.log('Response', response);
+        // const messages = await AsyncStorage.getItem('messages');
+        // const messagesJson = JSON.parse(messages);
+        // console.log('Messages', messagesJson);
+        // setChats(messagesJson);
+        const messages = await fetchSingleChat(chat_id)
+        setChats(messages);
       } catch (error) {
         throw new Error(error);
       }
@@ -132,16 +150,16 @@ const discussion = () => {
                         maxWidth: Dimensions.get('screen').width * 0.8,
                         backgroundColor: '#3a6ee8',
                         alignSelf:
-                          item.senderId === isUser.uid
+                          item.userId === isUser.uid
                             ? 'flex-end'
                             : 'flex-start',
                         marginHorizontal: 10,
                         padding: 10,
                         borderRadius: 8,
                         borderBottomLeftRadius:
-                          item.senderId === isUser.uid ? 8 : 0,
+                          item.userId === isUser.uid ? 8 : 0,
                         borderBottomRightRadius:
-                          item.senderId === isUser.uid ? 0 : 8,
+                          item.userId === isUser.uid ? 0 : 8,
                       }}
                     >
                       <Text
@@ -159,7 +177,11 @@ const discussion = () => {
                           alignSelf: 'flex-start',
                         }}
                       >
-                        {new Date(item.time.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
+                      {
+                        item.time && !isNaN(new Date(item.time.seconds * 1000).getTime())
+                          ? new Date(item.time.seconds * 1000).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+                          : "sending"
+                      }
                       </Text>
                     </View>
                   </View>

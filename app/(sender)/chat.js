@@ -20,7 +20,10 @@ const chat = () => {
         const response = await fetchAllChats(isUser.uid, user.firstName);
         console.log(response)
         console.log('test'+ user.firstName)
-        setChats(response);
+        const chatList = await AsyncStorage.getItem('chats');
+        const chatListData = JSON.parse(chatList);
+        console.log(chatListData);
+        setChats(chatListData);
         setLoading(false);
         return response;
       } catch (error) {
@@ -34,7 +37,13 @@ const chat = () => {
   //Refresh function
   const onRefresh = async () => {
     setRefreshing(true);
+    setLoading(true);
     await fetchAllChats(user.id, user.firstName);
+    const chatList = await AsyncStorage.getItem('chats');
+    const chatListData = JSON.parse(chatList);
+    console.log(chatListData);
+    setChats(chatListData);
+    setLoading(false);
     setRefreshing(false);
   }
 
@@ -50,7 +59,7 @@ const chat = () => {
         renderItem={({item}) => {
           const otherParticipant = item.participants.find(participant => participant.userId !== isUser.uid);
           const senderName = item.lastMessage.senderId === isUser.uid ? user.firstName : otherParticipant.userName;
-          const messageTime = new Date(item.lastMessage.createdAt.seconds * 1000).toLocaleString();
+          const messageTime = new Date(item.lastMessage.timestamp.seconds * 1000).toLocaleString();
           return (
           <TouchableOpacity 
             onPress={()=>{

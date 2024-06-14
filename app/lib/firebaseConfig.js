@@ -1,7 +1,7 @@
 import { initializeApp } from '@firebase/app';
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, initializeAuth, getReactNativePersistence, signOut } from "@firebase/auth";
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
-import { getFirestore, collection, setDoc, doc, getDoc, updateDoc,  query, where, getDocs, deleteDoc, orderBy  } from "@firebase/firestore";
+import { getFirestore, collection, setDoc, doc, getDoc, updateDoc,  query, where, getDocs, deleteDoc, orderBy, addDoc, serverTimestamp, onSnapshot  } from "@firebase/firestore";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "@firebase/storage";
 // import {...} from "firebase/functions";
 // import {...} from "firebase/database";
@@ -519,68 +519,71 @@ const getChats = async ()=>{
 const fetchMessagesForChat = async (chatId) => {
   try {
     const messagesSnapshot =  collection(FIREBASE_DB_FIRESTORE, 'chats', chatId, 'messages');
-    const querySnapshot = await getDocs(messagesSnapshot);
+    const querySnapshot = await getDocs(messagesSnapshot, orderBy('time', 'asc'));
     const messages = [];
     querySnapshot.forEach((doc) => {
       messages.push({ id: doc.id, ...doc.data() });
     });
     console.log("Messages: ", messages);
-    AsyncStorage.setItem('messages', JSON.stringify(messages));
+    // AsyncStorage.setItem('messages', JSON.stringify(messages));
   } catch (error) {
     console.error("Error fetching messages: ", error);
     return [];
   }
 };
 
-//test function 
-const testFetchChats = async (userId) => {
+//Function to fetch a single chat
+const fetchSingleChat = async (chatId) => {
   try {
-    const chatRef = collection(FIREBASE_DB_FIRESTORE, 'chats');
-    console.log(chatRef);
-    const q = query(chatRef, where("participants", "array-contains", userId));
+    const messagesRef =  collection(FIREBASE_DB_FIRESTORE, 'chats', chatId, 'messages');
+    const q = query(messagesRef, orderBy('time', 'desc'));
     const querySnapshot = await getDocs(q);
-    const chatData = [];
+    const messages = [];
     querySnapshot.forEach((doc) => {
-      console.log('Data about the chats collection', { id: doc.id, ...doc.data() })
-      chatData.push({ id: doc.id, ...doc.data() });
-      console.log('Array of chats to be pushed ',chatData)
+      messages.push({ id: doc.id, ...doc.data() });
     });
-    AsyncStorage.setItem('chats', JSON.stringify(chatData));    
+    console.log("Messages: ", messages);
+    AsyncStorage.setItem('messages', JSON.stringify(messages));
+    return messages;
   } catch (error) {
-    console.log(error)
+    console.error("Error fetching chat data: ", error);
+    throw new Error(error);
   }
-}
+};
 
 //Function to send a message 
-const sendMessage = async (chatId, userId, userName, messageText) => {
+const sendMessage = async (chatId, user_id, messageText, username) => {
   try {
     //Create a reference to the firestore chats collection
     const messageRef = collection(FIREBASE_DB_FIRESTORE, 'chats', chatId, 'messages');
 
     //Create a message object
     const messageData = {
-      senderId: userId,
-      senderName: userName,
-      text: messageText,
-      createdAt: new Date()
+      userId: user_id,
+      message: messageText,
+      time: serverTimestamp()
     };
-
+    
     // Add the message to the messages subcollection
-    await addDoc(messageRef, newMessage);
+    await addDoc(messageRef, messageData)
 
     // Update the lastMessage field in the chat document
     const chatRef = doc(FIREBASE_DB_FIRESTORE, 'chats', chatId);
     await updateDoc(chatRef, {
       lastMessage: {
-        ...messageData,
+        senderName: username,
+        message: messageData.message,
+        senderId: user_id,
         timestamp: serverTimestamp(),
       },
     });
+
+    
   } catch (error) {
+    console.warn(error);
     throw new Error(error);
   }
 };
-
 
 //Fetch the chats from the chats collection by using the logged in user id
 const fetchAllChats = async (userId, userName) => {
@@ -597,7 +600,8 @@ const fetchAllChats = async (userId, userName) => {
       console.log(doc.id, " => ", doc.data());
       chatData.push({ id: doc.id, ...doc.data() });
     }); 
-    return chatData;
+    AsyncStorage.setItem('chats', JSON.stringify(chatData));
+    // return chatData;
   } catch (error) {
     console.warn(error)
     throw new Error(error)
@@ -635,10 +639,10 @@ export {
   declineCarryRequest,
   acceptCarryRequest,
   getChats,
-  testFetchChats,
   fetchMessagesForChat,
   sendMessage,
   
   //test new implementation
-  fetchAllChats
+  fetchAllChats,
+  fetchSingleChat
 };
