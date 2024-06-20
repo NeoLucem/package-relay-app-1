@@ -11,6 +11,7 @@ import {
   createNewChat 
 } from '../lib/firebaseConfig';
 import { router } from 'expo-router';
+import chat from '../(sender)/chat';
 const viewTripDetailScreen = () => {
   const { isUser, user, loading, setLoading } = useGlobalContext();
   const [ requests, setRequests ] = useState([]);
@@ -108,11 +109,25 @@ const viewTripDetailScreen = () => {
       console.log('send message', sender_id, traveler_id, sender_name, traveler_name)
       const response = await createNewChat(sender_id, traveler_id, traveler_name, sender_name);
       console.log(response);
+      const chatIdValue =  await AsyncStorage.getItem('chatId');
+      const chatIdValueJson = JSON.parse(chatIdValue);
+      console.log("Chat id of the new discussion ", chatIdValueJson);
+      router.push(
+       {
+         pathname: '../(screens)/[discussionScreen]',
+         params: {
+           userName: traveler_name, 
+           chat_id: chatIdValueJson,
+          //  sender_name: `${isUser.firstName} ${isUser.lastName}`
+         }
+       }
+     )
       setLoading(false);
     } catch (error) {
       throw new Error(error);
     }
   }
+
   return (
     <SafeAreaView className="h-full">
       <FlatList 
@@ -139,22 +154,29 @@ const viewTripDetailScreen = () => {
                 <TouchableOpacity
                   onPress={() => {
                     console.log('Message sent')
-                    
-                    sendNewMessage(item.userId, item.travelerId, `${user.firstName} ${user.lastName}`, item.travelerName)
-                    // router.push(
-                    //   {
-                    //     pathname: '../(screens)/[discussionScreen]',
-                    //     params: {
-                    //       traveler_name: item.travelerName, 
-                    //       traveler_id: item.userId,
-                    //       sender_id: item.senderId,
-                    //       sender_name: `${isUser.firstName} ${isUser.lastName}`
-                    //     }
-                    //   }
-                    // )
+                    sendNewMessage(item.userId, item.travelerId, `${user.firstName} ${user.lastName}`, item.travelerName)                 
                   }}
                   className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-black flex justify-center items-center">
                   <Text className="text-white">Send a message</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    console.log('See details')
+                    router.push(
+                      {
+                        pathname: '(screens)/pendingRequest/[pendingReq]', 
+                        params:{
+                          requestId: item.requestId,
+                          trip_id: item.tripId,
+                          package_id: item.packageId,
+                          sender_id: item.userId,
+                          traveler_id: item.travelerId,
+                        }
+                      }
+                    )
+                  }} 
+                  className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-gray-400 flex justify-center items-center">
+                  <Text className="text-white">More</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   onPress={() => {

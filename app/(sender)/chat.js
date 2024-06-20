@@ -18,7 +18,6 @@ const chat = () => {
       try {
         setLoading(true);
         const response = await fetchAllChats(isUser.uid, `${user.firstName} ${user.lastName}`);
-        console.log('Voici la list des chats line 21 chat.js',response)
         const chatList = await AsyncStorage.getItem('chats');
         const chatListData = JSON.parse(chatList);
         console.log(chatListData);
@@ -59,7 +58,7 @@ const chat = () => {
   const onRefresh = async () => {
     setRefreshing(true);
     setLoading(true);
-    await fetchAllChats(user.id, user.firstName);
+    await fetchAllChats(user.id, `${user.firstName} ${user.lastName}`);
     const chatList = await AsyncStorage.getItem('chats');
     const chatListData = JSON.parse(chatList);
     console.log(chatListData);

@@ -21,7 +21,8 @@ import {
 import { useGlobalContext } from '../../../context/GlobalProvider';
 import  Loader  from '../../../../components/Loader';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-
+import 'react-native-get-random-values';
+import { v4 as uuid } from 'uuid'
 
 const postTrip = () => {
     const { user, isUser, setUser,  loading, setLoading } = useGlobalContext();
@@ -142,8 +143,8 @@ const postTrip = () => {
         setLoading(true);
         const trip = {
             travelerId: user.id,
-            tripId: generateUniqueTripId(user.id),
-            travelerName: user.firstName+" "+user.lastName,
+            tripId: uuid(),
+            travelerName: `${user.firstName} ${user.lastName}`,
             status: 'pending',
             from: fromVal,
             to: toVal,

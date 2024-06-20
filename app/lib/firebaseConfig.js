@@ -252,9 +252,6 @@ const cancelPackageReq = async (id)=>{
   }
 }
 
-
-
-
 //Update package information (price)
 const updatePackageInfo = async ()=>{}
 
@@ -297,6 +294,24 @@ const fetchSinglePackage = async (id)=>{
     throw new Error(error)
   }
 
+}
+
+const getSinglePackage = async (id) =>{
+  try {
+    //Create a reference to the firestore package collection 
+    const packageRef = collection(FIREBASE_DB_FIRESTORE, 'packages');
+    const q = query(packageRef);
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      if(doc.data().package_id == id){
+        console.log("Package found ", doc.id, id);
+        AsyncStorage.setItem('singlePackage', JSON.stringify(doc.data()));
+      }
+    });
+  } catch (error) {
+    throw new Error(error)
+  }
 }
 
 
@@ -413,6 +428,27 @@ const deleteTrip = async (trip_id)=>{
   }
 }
 
+//Fetch single trip information
+const fetchSingleTrip = async (trip_id)=>{
+  try {
+    //Create a reference to the firestore trip collection 
+    const tripRef = collection(FIREBASE_DB_FIRESTORE, 'trips');
+    // Create a query against the collection.
+    const q = query(tripRef);
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      if(doc.data().tripId == trip_id){
+        console.log("Trip found ", doc.id, trip_id);
+        AsyncStorage.setItem('singleTrip', JSON.stringify(doc.data()));
+      }
+    }); 
+  } catch (error) {
+    throw new Error(error)
+  }
+
+}
 
 
 /******************************************************************** 
@@ -721,10 +757,6 @@ const createNewChat = async (user_id, traveler_id, traveler_name, sender_name ) 
     const participantIdsComposite = [user_id, traveler_id].sort().join('_');
 
     //Check if there is a chat with the same participants
-    // const q = query(chatCollectionRef, 
-    //   where("participants", "array-contains", { 'userId': user_id, 'userName': sender_name, 'status': 'online' }), 
-    //   where("participants", "array-contains", { 'userId': traveler_id, 'userName': traveler_name, 'status': 'online'})
-    // );
     const q = query(chatCollectionRef, 
       where("participantIdsComposite", "==", participantIdsComposite)
     );
@@ -758,6 +790,30 @@ const createNewChat = async (user_id, traveler_id, traveler_name, sender_name ) 
         throw new Error(error);
       }
     }
+    let chatId = '';
+    onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          console.log("New chat: ", change.doc.data(), change.doc.id);
+          chatId = change.doc.id;
+          console.log("chat id line 763", chatId)
+          console.log(typeof change.doc.id)
+          AsyncStorage.setItem('chatId', JSON.stringify(chatId));
+          return chatId;
+        }
+        if (change.type === "modified") {
+          console.log("Modified chat: ", change.doc.data(), change.doc.id);
+          chatId = change.doc.id;  
+          return chatId;         
+        }
+        if (change.type === "removed") {
+          console.log("Removed chat: ", change.doc.data(), change.doc.id);
+          chatId = change.doc.id; 
+          return chatId;
+        }
+      });
+    });
+    return chatId;
   } catch (error) {
     console.warn(error)
     throw new Error(error);
@@ -785,6 +841,7 @@ export {
   cancelPackageReq,
   updatePackageInfo,
   fetchPackageOffer,
+  getSinglePackage,
 
   //Trips related exports
   createNewTrip,
@@ -792,6 +849,7 @@ export {
   fetchTripInfoForTraveler,
   searchAvailableTraveler,
   deleteTrip,
+  fetchSingleTrip,
 
   sendCarryRequest,
   fetchCarryRequest,

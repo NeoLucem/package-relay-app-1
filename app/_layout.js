@@ -45,6 +45,7 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
       <GlobalProvider>
         <Stack screenOptions={{headerShown: false}}>
+          <Stack.Screen name="(screens)/pendingRequest/[pendingReq]" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Details'}}/>
           <Stack.Screen name="(screens)/traveler/activity/viewTripDetails" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'My trips'}}/>
           <Stack.Screen name="(screens)/traveler/activity/viewCarryRequest" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Pending carry Request'}}/>
           <Stack.Screen name="(screens)/traveler/activity/viewAcceptedRequest" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Accepted requests'}}/>
