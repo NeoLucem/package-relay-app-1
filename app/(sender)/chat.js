@@ -17,6 +17,27 @@ const chat = () => {
     const load = async () => {
       try {
         setLoading(true);
+        const response = await fetchAllChats(isUser.uid, `${user.firstName} ${user.lastName}`);
+        console.log('Voici la list des chats line 21 chat.js',response)
+        const chatList = await AsyncStorage.getItem('chats');
+        const chatListData = JSON.parse(chatList);
+        console.log(chatListData);
+        setChats(chatListData);
+        setLoading(false);
+        return response;
+      } catch (error) {
+        throw new Error(error)
+      }
+    }
+
+    load();
+  }, [])
+
+  useLayoutEffect(() => {
+    // Get the chats from the chat collection in firebase
+    const load = async () => {
+      try {
+        setLoading(true);
         const response = await fetchAllChats(isUser.uid, user.firstName);
         console.log(response)
         console.log('test'+ user.firstName)
@@ -64,12 +85,12 @@ const chat = () => {
           <TouchableOpacity 
             onPress={()=>{
               fetchMessagesForChat(item.id)
-              router.push({pathname: '../(screens)/[discussionScreen]', params:{userName: senderName, chat_id: item.id}})
+              router.push({pathname: '../(screens)/[discussionScreen]', params:{userName: otherParticipant.userName, chat_id: item.id}})
               }
             }
           >
             <DiscussionComponent 
-              userName={senderName || 'No Name'}
+              userName={otherParticipant.userName || 'No Name'}
               lastMessage={item.lastMessage.message}
               time={messageTime}
               discussionId={item.id}

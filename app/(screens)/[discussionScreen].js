@@ -19,9 +19,9 @@ import {
   import { Icon } from 'react-native-elements';
 import {useNavigation} from '@react-navigation/native'
 import { useGlobalContext } from '../context/GlobalProvider';
-import { sendMessage, fetchSingleChat } from '../lib/firebaseConfig';
+import { sendMessage, fetchSingleChat, fetchAllChats } from '../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, router  } from 'expo-router';
 import { v4 as uuidv4 } from 'uuid';
 
 const discussion = () => {
@@ -34,10 +34,25 @@ const discussion = () => {
       name: userName,
       profile_image: 'https://randomuser.me/api/portraits/men/0.jpg',
       last_seen: 'online',
-    });
-    const [inputMessage, setInputMessage] = useState('');
-
-    useEffect(() => {
+      });
+      const [inputMessage, setInputMessage] = useState('');
+      
+      useEffect(() => {
+        //Fetch messages
+        const loadMessages = async () => {
+          try {
+            console.log('Chat Screen Loaded', chat_id);
+            // const response = await AsyncStorage.getItem('messages');
+            // const messagesJson = JSON.parse(response);
+            // console.log('Messages', messagesJson);
+            // setChats(messagesJson);
+            const messages = await fetchSingleChat(chat_id)
+            setChats(messages);
+          } catch (error) {
+            throw new Error(error);
+          }
+        };
+        loadMessages();
       navigation.setOptions({
         title: '',
         headerLeft: () => (
@@ -45,7 +60,9 @@ const discussion = () => {
             <TouchableOpacity
               style={{ paddingRight: 10 }}
               onPress={() => {
-                navigation.goBack();
+                // navigation.goBack();
+                router.replace('../(sender)/chat')
+                fetchAllChats(isUser.uid, user.firstName);
               }}
             >
               <Icon
@@ -84,24 +101,9 @@ const discussion = () => {
             <Icon name='call' size={28} color='#fff' />
           </TouchableOpacity>
         ),
-      });
-      
-      //Fetch messages
-      const loadMessages = async () => {
-        try {
-          console.log('Chat Screen Loaded', chat_id);
-          // const response = await AsyncStorage.getItem('messages');
-          // const messagesJson = JSON.parse(response);
-          // console.log('Messages', messagesJson);
-          // setChats(messagesJson);
-          const messages = await fetchSingleChat(chat_id)
-          setChats(messages);
-        } catch (error) {
-          throw new Error(error);
-        }
-      };
+        });
+        
 
-      loadMessages();
     }, []);
 
     //Handle message sending

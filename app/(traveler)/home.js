@@ -14,11 +14,11 @@ const home = () => {
           className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
           <Text>Create a trip</Text>
         </TouchableOpacity>
-        <TouchableOpacity 
+        {/* <TouchableOpacity 
           onPress={() => router.push('(screens)/traveler/home/checkAvailPackage')}
           className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
           <Text>Check for available packages</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
       <StatusBar hidden={false} barStyle="dark-content"/>
     </SafeAreaView>

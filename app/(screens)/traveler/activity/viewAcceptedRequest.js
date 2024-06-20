@@ -2,7 +2,7 @@ import { StyleSheet, Image, View, Modal, Text, SafeAreaView, FlatList, Touchable
 import React, { useEffect, useState } from 'react';
 import { useGlobalContext } from '../../../context/GlobalProvider';
 import { 
-  fetchCarryRequest, 
+  fetchAcceptedCarryRequestFromTraveler, 
   fetchSinglePackage, 
   declineCarryRequest,
   acceptCarryRequest 
@@ -10,18 +10,18 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '../../../../components/Loader';
 
-const viewCarryRequest = () => {
-  const { isUser, setUser, loading, setLoading } = useGlobalContext();
-  const [ requests, setRequests ] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [packageInfo, setPackageInfo] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+const viewAcceptedRequest = () => {
+    const { isUser, setUser, loading, setLoading } = useGlobalContext();
+    const [ requests, setRequests ] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [packageInfo, setPackageInfo] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
 
-  //Refresh request data
+    //Refresh request data
   const refetch = async () => {
     try {
         setLoading(true);
-        const response = await fetchCarryRequest(isUser.uid);
+        const response = await fetchAcceptedCarryRequestFromTraveler(isUser.uid);
         const requestsJson = await AsyncStorage.getItem('requests');
         const requestsData = JSON.parse(requestsJson);
         setRequests(requestsData);
@@ -46,7 +46,7 @@ const viewCarryRequest = () => {
     const load = async () => {
       try {
           setLoading(true);
-          const response = await fetchCarryRequest(isUser.uid);
+          const response = await fetchAcceptedCarryRequestFromTraveler(isUser.uid);
           const requestsJson = await AsyncStorage.getItem('requests');
           const requestsData = JSON.parse(requestsJson);
           setRequests(requestsData);
@@ -68,8 +68,7 @@ const viewCarryRequest = () => {
       const response = await fetchSinglePackage(id);
       const singlePackageJson = await AsyncStorage.getItem('singlePackage');
       const singlePackageData = JSON.parse(singlePackageJson);
-      console.log('single package', singlePackageData)
-      setPackageInfo(response);
+      setPackageInfo(singlePackageData);
       console.log(response);
     }catch(error){
       throw new Error(error);
@@ -100,8 +99,6 @@ const viewCarryRequest = () => {
       throw new Error(error);
     }
   }
-
-
   return (
     <SafeAreaView className="h-full">
       <FlatList 
@@ -111,9 +108,8 @@ const viewCarryRequest = () => {
         renderItem={({ item })=>(
             <View className="rounded-xl justify-start  border-black border-2 gap-1 mt-3 ml-1 w-[96%]">
               <View className="ml-4 justify-start gap-1">
-                <Text className="text-black">{item.senderName} needs your service!</Text>
+                <Text className="text-black font-pbold">You have accepted {item.senderName}'s request</Text>
               </View>
-
               <View className="gap-2 justify-center items-center mb-1">
                 <TouchableOpacity
                   onPress={() => {
@@ -195,49 +191,48 @@ const viewCarryRequest = () => {
 }
 
 const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    width: '96%',
-    height: '80%',
-    shadowOffset: {
-      width: 0,
-      height: 2,
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 22,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonOpen: {
-    backgroundColor: '#F194FF',
-  },
-  buttonClose: {
-    backgroundColor: '#2196F3',
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-});
-
-export default viewCarryRequest
+    modalView: {
+      margin: 20,
+      backgroundColor: 'white',
+      borderRadius: 20,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000',
+      width: '96%',
+      height: '80%',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    button: {
+      borderRadius: 20,
+      padding: 10,
+      elevation: 2,
+    },
+    buttonOpen: {
+      backgroundColor: '#F194FF',
+    },
+    buttonClose: {
+      backgroundColor: '#2196F3',
+    },
+    textStyle: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    modalText: {
+      marginBottom: 15,
+      textAlign: 'center',
+    },
+  });
+export default viewAcceptedRequest

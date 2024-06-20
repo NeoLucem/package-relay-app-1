@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, View, Text, SafeAreaView, FlatList, TouchableOpacity, Modal, Alert } from 'react-native';
 import React, { useState, useEffect } from 'react';
 // import { SearchTravelerComponent } from '../../components/SearchTravelerComponent';
 import { fetchTripInfo, fetchUserData, searchAvailableTraveler, sendCarryRequest, fetchPackageOffer } from '../lib/firebaseConfig';
@@ -7,7 +7,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import DateTimePickerModal from "react-native-modal-datetime-picker";
 import RNPickerSelect from 'react-native-picker-select';
 import Loader from '../../components/Loader';
-
+import 'react-native-get-random-values'
+// import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuid } from 'uuid'
 const checkTravelerScreen = () => {
   const { isUser, user, setUser, loading, setLoading } = useGlobalContext();
   const [trips, setTrips] = useState([]); 
@@ -110,9 +112,10 @@ const checkTravelerScreen = () => {
   }
 
   //Send carry request to a traveler
-  const sendRequest = async (tripId, travelerId, packageID) => {
+  const sendRequest = async (tripId, travelerId, packageID, traveler_name) => {
     try {
       if(isUser){
+        console.log(uuid());
         console.log(isUser.uid);
         console.log("Send carry request", `Trip id: ${tripId}`, `User id: ${isUser.uid}`, `Traveler id: ${travelerId}`);
         const request = {
@@ -121,7 +124,10 @@ const checkTravelerScreen = () => {
           travelerId: travelerId,
           status: "pending",
           packageId: packageID,
-          requestId: generateUniqueRequestId(isUser.uid)
+          reqSender_id: isUser.uid,
+          senderName: `${user.firstName} ${user.lastName}`,
+          travelerName: traveler_name,
+          requestId: uuid(),
         }
         const response = await sendCarryRequest(request);
         console.log(response);
@@ -132,43 +138,7 @@ const checkTravelerScreen = () => {
     
   }
 
-  // const fakeData = [
-  //   {
-  //     package: 'John Doe the traveler',
-  //     date: '2022-01-01',
-  //     from: "Accra",
-  //     to: "Lagos",
-  //   },
-  //   {
-  //     package: 'John  the traveler',
-  //     date: '2022-01-01',
-  //     from: "Accra",
-  //     to: "Lagos",
-  //   },
-  //   {
-  //     package: 'John ',
-  //     date: '2022-01-01',
-  //     from: "Accra",
-  //     to: "Lagos",
-  //   },
-  //   {
-  //     package: 'John traveler',
-  //     date: '2022-01-01',
-  //     from: "Accra",
-  //     to: "Lagos",
-  //   },
-  //   {
-  //     package: 'the traveler',
-  //     date: '2022-01-01',
-  //     from: "Accra",
-  //     to: "Lagos",
-  //   },
-  // ]
 
-
-
-  //Fetch offer from the package collection to display in the modal
-  
   const [packages, setPackages] = useState([]);
   const getPackageFromOffer = async () => {
     try {
@@ -197,7 +167,7 @@ const checkTravelerScreen = () => {
     }
   }
 
-  const send = async (id) => {
+  const send = async (id, traveler_name) => {
     try {
       console.log('send', id);
       const tripIdJson = await AsyncStorage.getItem('tripId');
@@ -205,39 +175,19 @@ const checkTravelerScreen = () => {
       const tripIdVal = JSON.parse(tripIdJson);
       const travelerIdVal = JSON.parse(travelerIdJson);
       console.log(`Trip id: ${tripIdVal}`, `Traveler id: ${travelerIdVal}`, `Package id: ${id}`);
-      await sendRequest(tripIdVal, travelerIdVal, id);
+      await sendRequest(tripIdVal, travelerIdVal, id, traveler_name);
     } catch (error) {
       throw new Error(error);
     }
   }
 
+  let traveler_name_1 = "";
   return (
     <SafeAreaView className="h-full">
        <View className="items-center justify-center bg-black-200 rounded-xl w-[96%] ml-1 mt-2">
         <View className="items-center justify-start w-full py-4">
           <View className="gap-1 justify-start w-[90%]">
             <Text className="text-white">Where is your package going?</Text>
-            {/* <View className="bg-white rounded-xl gap-1 py-1">
-              <TextInput
-                placeholder="Enter destination"
-                className="bg-white p-2 w-[90%]"
-                placeholderTextColor="#000"
-                value={date}
-                onChangeText={setDate}
-              />
-              <TouchableOpacity 
-                  onPress={showDatePicker}
-                  className="p-4 rounded-lg text-left min-h-[12px] w-[93%] bg-white flex justify-start items-start"
-              >
-                  <Text className="text-black text-left">{ndate? ndate : "Choose date"}</Text>
-              </TouchableOpacity> 
-              <DateTimePickerModal
-                  isVisible={isDatePickerVisible}
-                  mode="date"
-                  onConfirm={handleConfirm}
-                  onCancel={hideDatePicker}
-              /> 
-            </View> */}
           </View>
           <View className="gap-1 justify-start w-[90%] mb-2">
             {/* <Text className="text-white">Choose the dates</Text> */}
@@ -273,7 +223,9 @@ const checkTravelerScreen = () => {
         data={trips}
         className="ml-2 mt-1"
         keyExtractor={(item) => item.tripId}
-        renderItem={({ item })=>(
+        renderItem={({ item })=> { 
+          traveler_name_1 = item.travelerName;
+          return (
           <View className="rounded-xl justify-start  border-black border-2 gap-1 mt-3 ml-1 w-[96%]">
           <View className="ml-4 justify-start gap-1">
             <Text className="text-black">From {item.from} To {item.to}</Text>
@@ -281,6 +233,7 @@ const checkTravelerScreen = () => {
             <Text className="text-black">{item.weight} KG</Text>
             <Text className="text-black">Status: {item.status}</Text>
             <Text className="text-black">traveler: {item.travelerName}</Text>
+            
           </View>
           <View className="gap-2 justify-center items-center mb-1">
             <TouchableOpacity 
@@ -291,14 +244,14 @@ const checkTravelerScreen = () => {
             </TouchableOpacity>
             <TouchableOpacity
               onPress={()=>{
-                sendRequest(item.tripId, item.travelerId);
+                sendRequest(item.tripId, item.travelerId, item.travelerName);
               }}
               className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-black flex justify-center items-center">
               <Text className="text-white">Send request</Text>
             </TouchableOpacity>
           </View>
         </View>
-          )
+          )}
         }
         ListEmptyComponent={()=>(
           <>
@@ -331,16 +284,19 @@ const checkTravelerScreen = () => {
                       <Text className="text-black">From {item.from}</Text>
                       <Text className="text-black">To {item.destination}</Text>
                       <Text className="text-black">Before {item.date? item.date : 'no date'}</Text>
+                      <Text className="text-black">{item.package_id}</Text>
                     </View>                  
                     <TouchableOpacity 
                       onPress={()=>{
-                          console.log('clicked', item.package_id)
-                          send(item.package_id)
+                          console.log('clicked', item.package_id, traveler_name_1)
+                          send(item.package_id, traveler_name_1)
+                          Alert.alert('Request sent successfully');
+                          setModalVisible(!modalVisible)
                         }
                       }
                       className="p-4 rounded-xl border-2 border-black-100 min-h-[20px] w-[40%] bg-black flex justify-center items-center"
                     >
-                      <Text className="text-white">More</Text>
+                      <Text className="text-white">Send</Text>
                     </TouchableOpacity>
                   </View>
                 </View>

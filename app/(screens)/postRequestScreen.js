@@ -19,6 +19,8 @@ import { uploadPackageImg, downloadImgUrl, createNewPackage, fetchUserData } fro
 import { useGlobalContext } from '../context/GlobalProvider';
 import  Loader  from '../../components/Loader';
 import { router } from 'expo-router';
+import 'react-native-get-random-values'
+import { v4 as uuid } from 'uuid'
 
 
 
@@ -128,7 +130,7 @@ const postRequestScreen = () => {
 
   //Post package request
   const postRequest = async () => {
-    const packageObjId = hashCode(user.id);
+    // const packageObjId = hashCode(user.id);
     
     try {
       setLoading(true);
@@ -141,7 +143,7 @@ const postRequestScreen = () => {
       const packageData = { 
         senderId: user.id, 
         travelerId: '', 
-        package_id: packageObjId, 
+        package_id: uuid(), 
         package_desc: packageDescription, 
         budget: budget, 
         receiver_name: receiverName, 

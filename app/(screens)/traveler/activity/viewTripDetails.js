@@ -1,9 +1,9 @@
 import { View, Text, SafeAreaView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useGlobalContext } from '../../../context/GlobalProvider';
-import { fetchUserData, fetchTripInfo } from '../../../lib/firebaseConfig';
+import { fetchUserData, fetchTripInfoForTraveler, deleteTrip } from '../../../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import Loader from '../../../../components/Loader';
+import Loader from '../../../../components/Loader';
 
 const viewTripDetails = () => {
   const { isUser, user, setUser, loading, setLoading } = useGlobalContext();
@@ -19,7 +19,7 @@ const viewTripDetails = () => {
         console.log(a);
         console.log(isUser.uid);
         setUser(a);
-        const response = await fetchTripInfo(user.id);
+        const response = await fetchTripInfoForTraveler(user.id);
         const tripsJson = await AsyncStorage.getItem('trips');
         const tripsData = JSON.parse(tripsJson);
         setTrips(tripsData);
@@ -49,7 +49,7 @@ const viewTripDetails = () => {
           console.log(a);
           console.log(isUser.uid);
           setUser(a);
-          const response = await fetchTripInfo(user.id);
+          const response = await fetchTripInfoForTraveler(user.id);
           const tripsJson = await AsyncStorage.getItem('trips');
           const tripsData = JSON.parse(tripsJson);
           setTrips(tripsData);
@@ -65,6 +65,19 @@ const viewTripDetails = () => {
     }
     load();
   }, []);
+
+  //Delete a trip 
+  const deleteTripReq = async (id) => {
+    try{
+      setLoading(true);
+      const response = await deleteTrip(id);
+      console.log(response);
+      await refetch();
+      setLoading(false);
+    }catch(error){
+      throw new Error(error);
+    }
+  }
 
   return (
     <SafeAreaView className="h-full">
@@ -86,11 +99,9 @@ const viewTripDetails = () => {
                   <Text className="text-black">Edit</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  // onPress={display}
-                  // onPress={()=>{
-                  //   cancelPackageReq(item.package_id);
-                  //   refetch();
-                  // }}
+                  onPress={()=> {
+                    deleteTripReq(item.tripId);
+                  }}
                   className="p-4 mr-3 rounded-xl border-2 border-black-100 min-h-[24px] w-[96%] bg-black flex justify-center items-center">
                   <Text className="text-white">Cancel</Text>
                 </TouchableOpacity>
@@ -108,6 +119,7 @@ const viewTripDetails = () => {
         )}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
+      <Loader isLoading={loading} />
     </SafeAreaView>
   )
 }

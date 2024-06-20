@@ -16,7 +16,12 @@ const activity = () => {
         <TouchableOpacity 
           onPress={()=>router.push('../(screens)/viewTripDetailScreen')}
           className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
-            <Text>View trip details</Text>
+            <Text>View pending requests</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          onPress={()=>router.push('../(screens)/viewAcceptedRequests')}
+          className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
+            <Text>View accepted requests</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           onPress={()=>router.push('../(screens)/viewSenderNotificationScreen')}

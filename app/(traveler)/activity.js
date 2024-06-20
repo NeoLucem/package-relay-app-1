@@ -17,10 +17,15 @@ const activity = () => {
       <TouchableOpacity 
         onPress={() => router.push('(screens)/traveler/activity/viewCarryRequest')}
         className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
-        <Text>View carry request details</Text>
+        <Text>View carry requests</Text>
+      </TouchableOpacity>
+      <TouchableOpacity 
+        onPress={() => router.push('(screens)/traveler/activity/viewAcceptedRequest')}
+        className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
+        <Text>View accepted requests</Text>
       </TouchableOpacity>
       <TouchableOpacity className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
-        <Text>Notifications</Text>
+        <Text>Delivering</Text>
       </TouchableOpacity>
     </View>
     <StatusBar hidden={false} barStyle="dark-content"/>

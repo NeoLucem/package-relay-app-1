@@ -6,6 +6,7 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "@firebase/storage"
 // import {...} from "firebase/functions";
 // import {...} from "firebase/database";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Try } from 'expo-router/build/views/Try';
 
 
 // Initialize Firebase
@@ -321,7 +322,7 @@ const createNewTrip = async (tripData) =>{
   }
 }
 
-//Function to fetch trip information
+//Function to fetch trips information
 const fetchTripInfo = async ()=>{
   try {
     //Create a reference to the firestore trip collection 
@@ -341,6 +342,26 @@ const fetchTripInfo = async ()=>{
   }
 }
 
+//Fetch trips for single traveler
+const fetchTripInfoForTraveler = async (userId)=>{
+  try {
+    //Create a reference to the firestore trip collection 
+    const tripRef = collection(FIREBASE_DB_FIRESTORE, 'trips');
+    // Create a query against the collection.
+    const q = query(tripRef, where("status", "==", "pending"), where("travelerId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const tripData = [];
+    querySnapshot.forEach((doc) => {
+      tripData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('trips', JSON.stringify(tripData));
+    return tripData;
+  } catch (error) {
+    throw new Error(error)
+  }
+
+}
 //Search available traveler by date, from and to 
 const searchAvailableTraveler = async (from, to)=>{
   try {
@@ -368,7 +389,29 @@ const searchAvailableTraveler = async (from, to)=>{
 const updateTripInfo = async ()=>{}
 
 //Function to delete a trip
-const deleteTrip = async ()=>{}
+const deleteTrip = async (trip_id)=>{
+  try {
+    //Create a reference to the firestore trip collection 
+    const tripRef = collection(FIREBASE_DB_FIRESTORE, 'trips');
+    // Create a query against the collection.
+    const q = query(tripRef, where("tripId", "==", trip_id));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    let docId = ''
+    querySnapshot.forEach((doc) => {
+      console.log(typeof doc.data());
+      console.log(doc.data().tripId);
+      console.log(doc.id, '=>',doc.data());
+      docId = doc.id;
+    });
+    console.log("Doc id ", docId);
+    const response = await deleteDoc(doc(FIREBASE_DB_FIRESTORE, `trips/${docId}`));
+    console.log("Trip has been deleted with success ", response);
+  } catch (error) {
+    console.warn(error)
+    throw new Error(error)
+  }
+}
 
 
 
@@ -384,6 +427,66 @@ const fetchCarryRequest = async (userId)=>{
     const requestRef = collection(FIREBASE_DB_FIRESTORE, 'requests');
     // Create a query against the collection.
     const q = query(requestRef, where("status", "==", "pending"), where("travelerId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const requestData = [];
+    querySnapshot.forEach((doc) => {
+      requestData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('requests', JSON.stringify(requestData));
+    return requestData;
+  } catch (error) {
+    throw new Error(error)
+  }
+} 
+
+//Fetch carry request with pending status from the sender side 
+const fetchCarryRequestFromSender = async (userId)=>{
+  try {
+    //Create a reference to the firestore request collection 
+    const requestRef = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    // Create a query against the collection.
+    const q = query(requestRef, where("status", "==", "pending"), where("userId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const requestData = [];
+    querySnapshot.forEach((doc) => {
+      requestData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('requests', JSON.stringify(requestData));
+    return requestData;
+  } catch (error) {
+    throw new Error(error)
+  }
+} 
+
+//Fetch accepted request with the status accepted from the sender side
+const fetchAcceptedCarryRequestFromSender = async (userId)=>{
+  try {
+    //Create a reference to the firestore request collection 
+    const requestRef = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    // Create a query against the collection.
+    const q = query(requestRef, where("status", "==", "accepted"), where("userId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const requestData = [];
+    querySnapshot.forEach((doc) => {
+      requestData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('requests', JSON.stringify(requestData));
+    return requestData;
+  } catch (error) {
+    throw new Error(error)
+  }
+} 
+
+//Fetch accepted request with the status accepted from the traveler side
+const fetchAcceptedCarryRequestFromTraveler = async (userId)=>{
+  try {
+    //Create a reference to the firestore request collection 
+    const requestRef = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    // Create a query against the collection.
+    const q = query(requestRef, where("status", "==", "accepted"), where("travelerId", "==", userId));
     //Get the documents from the query
     const querySnapshot = await getDocs(q);
     const requestData = [];
@@ -601,11 +704,63 @@ const fetchAllChats = async (userId, userName) => {
       chatData.push({ id: doc.id, ...doc.data() });
     }); 
     AsyncStorage.setItem('chats', JSON.stringify(chatData));
-    // return chatData;
+    return chatData;
   } catch (error) {
     console.warn(error)
     throw new Error(error)
     
+  }
+}
+
+//Create a new chat for a demand after sending the request and the request status is pendning
+const createNewChat = async (user_id, traveler_id, traveler_name, sender_name ) =>{
+  try {
+    //Create a reference to the firestore chat collection
+    const chatCollectionRef = collection(FIREBASE_DB_FIRESTORE, 'chats');
+
+    const participantIdsComposite = [user_id, traveler_id].sort().join('_');
+
+    //Check if there is a chat with the same participants
+    // const q = query(chatCollectionRef, 
+    //   where("participants", "array-contains", { 'userId': user_id, 'userName': sender_name, 'status': 'online' }), 
+    //   where("participants", "array-contains", { 'userId': traveler_id, 'userName': traveler_name, 'status': 'online'})
+    // );
+    const q = query(chatCollectionRef, 
+      where("participantIdsComposite", "==", participantIdsComposite)
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if(querySnapshot.size > 0){
+      console.log('Chat already exists');
+      return null;
+    }
+      
+    if(querySnapshot.size <= 0){
+      console.log('Chat does not exist');
+      //Create a new document in the chat collection with the user's UID
+      try {
+        await addDoc(chatCollectionRef, {
+          lastMessage: {
+            senderName: sender_name,
+            message: 'Hello, how are you?',
+            senderId: user_id,
+            timestamp: serverTimestamp(),
+            },
+            participants: [
+              { userId: user_id, userName: sender_name, status: 'online' },
+              { userId: traveler_id, userName: traveler_name, status: 'online' }
+            ],
+            participantIdsComposite: participantIdsComposite,
+        });
+      } catch (error) {
+        console.warn(error)
+        throw new Error(error);
+      }
+    }
+  } catch (error) {
+    console.warn(error)
+    throw new Error(error);
   }
 }
 
@@ -630,11 +785,19 @@ export {
   cancelPackageReq,
   updatePackageInfo,
   fetchPackageOffer,
+
+  //Trips related exports
   createNewTrip,
   fetchTripInfo,
+  fetchTripInfoForTraveler,
   searchAvailableTraveler,
+  deleteTrip,
+
   sendCarryRequest,
   fetchCarryRequest,
+  fetchCarryRequestFromSender,
+  fetchAcceptedCarryRequestFromTraveler,
+  fetchAcceptedCarryRequestFromSender,
   fetchSinglePackage,
   declineCarryRequest,
   acceptCarryRequest,
@@ -644,5 +807,6 @@ export {
   
   //test new implementation
   fetchAllChats,
-  fetchSingleChat
+  fetchSingleChat,
+  createNewChat
 };
