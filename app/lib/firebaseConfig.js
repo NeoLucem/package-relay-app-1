@@ -536,6 +536,27 @@ const fetchAcceptedCarryRequestFromTraveler = async (userId)=>{
   }
 } 
 
+//Fetch confirmed request with the status confirmed from the traveler side
+const fetchConfirmedCarryRequestFromTraveler = async (userId)=>{
+  try {
+    //Create a reference to the firestore request collection 
+    const requestRef = collection(FIREBASE_DB_FIRESTORE, 'requests');
+    // Create a query against the collection.
+    const q = query(requestRef, where("status", "==", "confirmed"), where("travelerId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const requestData = [];
+    querySnapshot.forEach((doc) => {
+      requestData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('requests', JSON.stringify(requestData));
+    return requestData;
+  } catch (error) {
+    throw new Error(error)
+  }
+
+}
+
 //Send carry request to a traveler 
 const sendCarryRequest = async (requestData)=>{
   try {
@@ -591,6 +612,41 @@ const acceptCarryRequest = async (request_id) => {
     console.log("Request has been declined with success ", request_id, docId)
   } catch (error) {
     throw new Error(error)
+  }
+}
+
+//Confirm Carry request (traveler side)
+const confirmRequest = async (request_id) => {
+  try {
+    const querySnapshot = await getDocs(collection(FIREBASE_DB_FIRESTORE, "requests"));
+    let docId = '';
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      console.log(doc.id, " => ", doc.data().requestId);
+      if(doc.data().requestId == request_id){
+        console.log("Request found ", doc.id, request_id);
+        docId = doc.id;
+      }
+    });
+    //Update the request document from the firestore reference
+    const requestDoc = doc(FIREBASE_DB_FIRESTORE, "requests/"+docId);
+    await updateDoc(requestDoc, {status: 'confirmed'});
+    console.log("Request has been confirmed with success ", request_id, docId)
+  } catch (error) {
+    throw new Error(error)
+  }
+}
+
+//Send payment request
+const sendPaymentRequest = async (data) => {
+  try {
+    //Create a reference to the firestore payment collection
+    const paymentCollection = collection(FIREBASE_DB_FIRESTORE, 'paymentRequest');
+    //Create a new document in the payment collection with the user's UID 
+    const response = await setDoc(doc(paymentCollection), data);
+    console.log(response);
+  } catch (error) {
+    throw new Error(error);
   }
 }
 
@@ -862,6 +918,9 @@ export {
   getChats,
   fetchMessagesForChat,
   sendMessage,
+  fetchConfirmedCarryRequestFromTraveler,
+  confirmRequest,
+  sendPaymentRequest,
   
   //test new implementation
   fetchAllChats,

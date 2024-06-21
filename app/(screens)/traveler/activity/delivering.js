@@ -1,28 +1,23 @@
 import { StyleSheet, Image, View, Modal, Text, SafeAreaView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { useGlobalContext } from '../../../context/GlobalProvider';
-import { 
-  fetchCarryRequest, 
-  fetchSinglePackage, 
-  declineCarryRequest,
-  acceptCarryRequest 
-} from '../../../lib/firebaseConfig';
+import { fetchConfirmedCarryRequestFromTraveler } from '../../../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Loader from '../../../../components/Loader';
 import { router } from 'expo-router';
 
-const viewCarryRequest = () => {
-  const { isUser, setUser, loading, setLoading } = useGlobalContext();
-  const [ requests, setRequests ] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [packageInfo, setPackageInfo] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+const delivering = () => {
+    const { isUser, loading, setLoading } = useGlobalContext();
+    const [ requests, setRequests ] = useState([]);
+    const [modalVisible, setModalVisible] = useState(false);
+    const [packageInfo, setPackageInfo] = useState([]);
+    const [refreshing, setRefreshing] = useState(false);
 
-  //Refresh request data
+        //Refresh request data
   const refetch = async () => {
     try {
         setLoading(true);
-        const response = await fetchCarryRequest(isUser.uid);
+        const response = await fetchConfirmedCarryRequestFromTraveler(isUser.uid);
         const requestsJson = await AsyncStorage.getItem('requests');
         const requestsData = JSON.parse(requestsJson);
         setRequests(requestsData);
@@ -35,75 +30,32 @@ const viewCarryRequest = () => {
     }
   };
 
-  //Refresh request data
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  };
+    //Refresh request data
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refetch();
+        setRefreshing(false);
+      };
 
-  useEffect(() => {
-    console.log(isUser.uid);
-    const load = async () => {
-      try {
-          setLoading(true);
-          const response = await fetchCarryRequest(isUser.uid);
-          const requestsJson = await AsyncStorage.getItem('requests');
-          const requestsData = JSON.parse(requestsJson);
-          setRequests(requestsData);
-          console.log("Test display trip" , requestsData);
-          setRequests(requestsData);
-          setLoading(false);
-          return response;
-      } catch (error) {
-        throw new Error(error);
-      }
-    }
-    load();
-  }, []);
-
-  //Fetch package data to display it
-  const getPackageInfo = async (id) => {
-    try{
-      console.log('test', id)
-      const response = await fetchSinglePackage(id);
-      const singlePackageJson = await AsyncStorage.getItem('singlePackage');
-      const singlePackageData = JSON.parse(singlePackageJson);
-      console.log('single package', singlePackageData)
-      setPackageInfo(response);
-      console.log(response);
-    }catch(error){
-      throw new Error(error);
-    }
-  }
-
-  //Decline request
-  // const declineRequest = async (id) => {
-  //   try {
-  //     setLoading(true);
-  //     console.log('decline request', id)
-  //     const response = await declineCarryRequest(id);
-  //     console.log(response);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     throw new Error(error);
-  //   }
-  // }
-
-  //Accept request
-  // const acceptRequest = async (id) => {
-  //   try {
-  //     setLoading(true);
-  //     console.log('accept request', id)
-  //     const response = await acceptCarryRequest(id);
-  //     console.log(response);
-  //     setLoading(false);
-  //   } catch (error) {
-  //     throw new Error(error);
-  //   }
-  // }
-
-
+      useEffect(() => {
+        console.log(isUser.uid);
+        const load = async () => {
+          try {
+              setLoading(true);
+              const response = await fetchConfirmedCarryRequestFromTraveler(isUser.uid);
+              const requestsJson = await AsyncStorage.getItem('requests');
+              const requestsData = JSON.parse(requestsJson);
+              setRequests(requestsData);
+              console.log("Test display trip" , requestsData);
+              setRequests(requestsData);
+              setLoading(false);
+              return response;
+          } catch (error) {
+            throw new Error(error);
+          }
+        }
+        load();
+      }, []);
   return (
     <SafeAreaView className="h-full">
       <FlatList 
@@ -113,16 +65,14 @@ const viewCarryRequest = () => {
         renderItem={({ item })=>(
             <View className="rounded-xl justify-start  border-black border-2 gap-1 mt-3 ml-1 w-[96%]">
               <View className="ml-4 justify-start gap-1">
-                <Text className="text-black">{item.senderName} needs your service!</Text>
+                <Text className="text-black font-pbold">You have accepted {item.senderName}'s request</Text>
               </View>
-
               <View className="gap-2 justify-center items-center mb-1">
                 <TouchableOpacity
                   onPress={() => {
-                    console.log('view details clicked')
                     router.push(
                       {
-                        pathname: '(screens)/traveler/activity/pendingRequest/[pendingReq]', 
+                        pathname: '(screens)/traveler/activity/delivering/[confirmedReq]', 
                         params:{
                           requestId: item.requestId,
                           trip_id: item.tripId,
@@ -136,7 +86,7 @@ const viewCarryRequest = () => {
                   } 
                   style={{marginLeft: 0, marginTop: 0}}
                   className="p-4 mr-3 rounded-xl border-2  border-black-100 min-h-[24px] w-[96%] bg-white flex justify-center items-center">
-                  <Text className="text-black">View details</Text>
+                  <Text className="text-black">View Details</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -189,50 +139,50 @@ const viewCarryRequest = () => {
   )
 }
 
-const styles = StyleSheet.create({
-  centeredView: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 22,
-  },
-  modalView: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    padding: 35,
-    alignItems: 'center',
-    shadowColor: '#000',
-    width: '96%',
-    height: '80%',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  button: {
-    borderRadius: 20,
-    padding: 10,
-    elevation: 2,
-  },
-  buttonOpen: {
-    backgroundColor: '#F194FF',
-  },
-  buttonClose: {
-    backgroundColor: '#2196F3',
-  },
-  textStyle: {
-    color: 'white',
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  modalText: {
-    marginBottom: 15,
-    textAlign: 'center',
-  },
-});
 
-export default viewCarryRequest
+const styles = StyleSheet.create({
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 22,
+    },
+    modalView: {
+      margin: 20,
+      backgroundColor: 'white',
+      borderRadius: 20,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000',
+      width: '96%',
+      height: '80%',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    button: {
+      borderRadius: 20,
+      padding: 10,
+      elevation: 2,
+    },
+    buttonOpen: {
+      backgroundColor: '#F194FF',
+    },
+    buttonClose: {
+      backgroundColor: '#2196F3',
+    },
+    textStyle: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+    modalText: {
+      marginBottom: 15,
+      textAlign: 'center',
+    },
+  });
+export default delivering

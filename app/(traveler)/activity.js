@@ -24,7 +24,9 @@ const activity = () => {
         className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
         <Text>View accepted requests</Text>
       </TouchableOpacity>
-      <TouchableOpacity className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
+      <TouchableOpacity 
+        onPress={() => router.push('(screens)/traveler/activity/delivering')}
+        className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
         <Text>Delivering</Text>
       </TouchableOpacity>
     </View>

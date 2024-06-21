@@ -45,10 +45,17 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
       <GlobalProvider>
         <Stack screenOptions={{headerShown: false}}>
+          <Stack.Screen name="(screens)/sender/activity/payments/[paymentReq]" options={{ headerShown: false, headerBackTitle: "Activity", headerBackTitleVisible: false, headerTitle: 'Details'}}/>
+          <Stack.Screen name="(screens)/traveler/activity/message/[messageToTraveler]" options={{ headerShown: false, headerBackTitle: "Activity", headerBackTitleVisible: false, headerTitle: 'Details'}}/>
+          <Stack.Screen name="(screens)/traveler/activity/paymentRequest/[paymentReq]" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Details'}}/>
+          <Stack.Screen name="(screens)/traveler/activity/delivering/[confirmedReq]" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Details'}}/>
+          <Stack.Screen name="(screens)/traveler/activity/acceptedRequest/[acceptedReq]" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Details'}}/>
+          <Stack.Screen name="(screens)/traveler/activity/pendingRequest/[pendingReq]" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Details'}}/>
           <Stack.Screen name="(screens)/pendingRequest/[pendingReq]" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Details'}}/>
           <Stack.Screen name="(screens)/traveler/activity/viewTripDetails" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'My trips'}}/>
           <Stack.Screen name="(screens)/traveler/activity/viewCarryRequest" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Pending carry Request'}}/>
           <Stack.Screen name="(screens)/traveler/activity/viewAcceptedRequest" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Accepted requests'}}/>
+          <Stack.Screen name="(screens)/traveler/activity/delivering" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Accepted requests'}}/>
           <Stack.Screen name="(screens)/traveler/home/checkAvailPackage" options={{ headerShown: true}}/>
           <Stack.Screen name="(screens)/traveler/home/postTrip" options={{ headerShown: true, headerBackTitleVisible: false, headerTitle:"Post a new trip"}}/>
           <Stack.Screen name="(screens)/success/packageSuccessScreen" options={{ headerShown: false}} />
@@ -60,6 +67,7 @@ export default function RootLayout() {
           <Stack.Screen name="(screens)/viewAcceptedRequests" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Accepted requests'}} />
           <Stack.Screen name="(screens)/checkTravelerScreen" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true, headerTitle:"Check available traveler"}} />
           <Stack.Screen name="(screens)/postRequestScreen" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true, headerTitle:"Create request"}} />
+          <Stack.Screen name="(screens)/sender/activity/pay/payments" options={{ headerShown: true, headerBackTitle: "Activity", headerBackTitleVisible: true, headerTitle: 'Payment Requests'}} />
           <Stack.Screen name="(screens)/discussionScreen" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true}} />
           <Stack.Screen name="(screens)/[discussionScreen]" options={{ headerShown: true, headerBackTitle: "Home", headerBackTitleVisible: true}} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

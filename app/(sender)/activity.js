@@ -24,9 +24,9 @@ const activity = () => {
             <Text>View accepted requests</Text>
         </TouchableOpacity>
         <TouchableOpacity 
-          onPress={()=>router.push('../(screens)/viewSenderNotificationScreen')}
+          onPress={()=>router.push('(screens)/sender/activity/pay/payments')}
           className="p-4 rounded-xl border-2 border-black-100 min-h-[24px] w-[90%] bg-white flex justify-center items-center">
-            <Text>Notifications</Text>
+            <Text>Payment Request</Text>
         </TouchableOpacity>
         </View>
     </SafeAreaView>

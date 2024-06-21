@@ -1,23 +1,21 @@
 import { StyleSheet, Image, View, Modal, Text, SafeAreaView, FlatList, TouchableOpacity, RefreshControl } from 'react-native';
 import React, { useEffect, useState } from 'react';
-import { useGlobalContext } from '../../../context/GlobalProvider';
-import { fetchAcceptedCarryRequestFromTraveler } from '../../../lib/firebaseConfig';
+import { useGlobalContext } from '../../../../context/GlobalProvider';
+import { fetchConfirmedCarryRequestFromTraveler } from '../../../../lib/firebaseConfig';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Loader from '../../../../components/Loader';
+import Loader from '../../../../../components/Loader';
 import { router } from 'expo-router';
 
-const viewAcceptedRequest = () => {
+const payments = () => {
     const { isUser, loading, setLoading } = useGlobalContext();
     const [ requests, setRequests ] = useState([]);
-    const [modalVisible, setModalVisible] = useState(false);
-    const [packageInfo, setPackageInfo] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
 
-    //Refresh request data
+//Refresh request data
   const refetch = async () => {
     try {
         setLoading(true);
-        const response = await fetchAcceptedCarryRequestFromTraveler(isUser.uid);
+        const response = await fetchConfirmedCarryRequestFromTraveler(isUser.uid);
         const requestsJson = await AsyncStorage.getItem('requests');
         const requestsData = JSON.parse(requestsJson);
         setRequests(requestsData);
@@ -42,7 +40,7 @@ const viewAcceptedRequest = () => {
     const load = async () => {
       try {
           setLoading(true);
-          const response = await fetchAcceptedCarryRequestFromTraveler(isUser.uid);
+          const response = await fetchConfirmedCarryRequestFromTraveler(isUser.uid);
           const requestsJson = await AsyncStorage.getItem('requests');
           const requestsData = JSON.parse(requestsJson);
           setRequests(requestsData);
@@ -56,8 +54,6 @@ const viewAcceptedRequest = () => {
     }
     load();
   }, []);
-
-
   return (
     <SafeAreaView className="h-full">
       <FlatList 
@@ -74,7 +70,7 @@ const viewAcceptedRequest = () => {
                   onPress={() => {
                     router.push(
                       {
-                        pathname: '(screens)/traveler/activity/acceptedRequest/[acceptedReq]', 
+                        pathname: '(screens)/traveler/activity/delivering/[confirmedReq]', 
                         params:{
                           requestId: item.requestId,
                           trip_id: item.tripId,
@@ -103,39 +99,6 @@ const viewAcceptedRequest = () => {
         )}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       />
-      <View style={styles.centeredView}>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => {
-          Alert.alert('Modal has been closed.');
-          setModalVisible(!modalVisible);
-        }}>
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>Package details</Text>
-            <FlatList 
-              data={packageInfo}
-              keyExtractor={(item) => item.image}
-              renderItem={({ item })=>(
-                <View className="ml-4 justify-start gap-1">
-                  <Image source={{uri: item.image}} className="w-[90%] h-[200px] rounded-xl" resizeMode='contain'/>
-                  <Text className="text-black">{item.package_desc}</Text>
-                  <Text className="text-black">From {item.from} To {item.destination}</Text>
-                  <Text className="text-black">Before {item.date? item.date : 'no date'}</Text>
-                </View>
-              )}
-            />
-            <TouchableOpacity
-              style={[styles.button, styles.buttonClose]}
-              onPress={() => setModalVisible(!modalVisible)}>
-              <Text style={styles.textStyle}>Close</Text>
-            </TouchableOpacity>            
-          </View>
-        </View>
-      </Modal>
-    </View>
     <Loader isLoading={loading} />
     </SafeAreaView>
   )
@@ -186,4 +149,4 @@ const styles = StyleSheet.create({
       textAlign: 'center',
     },
   });
-export default viewAcceptedRequest
+export default payments
