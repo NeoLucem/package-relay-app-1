@@ -143,7 +143,7 @@ const confirmedReq = () => {
                     </TouchableOpacity>
                 </View>
                 <Loader isLoading={loading} />
-            </ScrollView>
+    </ScrollView>
   )
 }
 

@@ -650,6 +650,28 @@ const sendPaymentRequest = async (data) => {
   }
 }
 
+//Fetch payment requests
+const fetchPaymentRequest = async (userId) => {
+  try {
+    //Create a reference to the firestore payment collection 
+    const paymentRef = collection(FIREBASE_DB_FIRESTORE, 'paymentRequest');
+    // Create a query against the collection.
+    const q = query(paymentRef, where("status", "==", "pending"), where("senderId", "==", userId));
+    //Get the documents from the query
+    const querySnapshot = await getDocs(q);
+    const paymentData = [];
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, " => ", doc.data());
+      paymentData.push(doc.data());
+    }); 
+    AsyncStorage.setItem('paymentRequests', JSON.stringify(paymentData));
+    console.log("Payment requests ", paymentData);
+    return paymentData;
+  } catch (error) {
+    throw new Error(error)
+  }
+
+}
 
 /******************************************************************** 
  *  In this portion of code,
@@ -921,6 +943,7 @@ export {
   fetchConfirmedCarryRequestFromTraveler,
   confirmRequest,
   sendPaymentRequest,
+  fetchPaymentRequest,
   
   //test new implementation
   fetchAllChats,

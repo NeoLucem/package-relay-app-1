@@ -77,6 +77,8 @@ import Loader from '../../../../../components/Loader';
             image_url: await downloadImgUrl(img),
             traveler_id: isUser.uid,
             senderId: sender_id,
+            status: 'pending',
+            traveler_name: `${user.firstName} ${user.lastName}`,
         }
 
         try{

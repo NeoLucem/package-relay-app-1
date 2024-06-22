@@ -3,8 +3,8 @@ import React from 'react';
 import { router, useLocalSearchParams } from 'expo-router';
 
 const messageToTraveler = () => {
-    const { receiver_name, receiver_number, package_ID, trip_ID, request_ID, sender_name, sender_budget, senderId } = useLocalSearchParams();
-    console.log(receiver_name, receiver_number, package_ID, trip_ID, request_ID, senderId);
+    const { receiver_name, receiver_number, package_ID, trip_ID, request_ID, sender_name, sender_budget, senderId, traveler_name } = useLocalSearchParams();
+    console.log(receiver_name, receiver_number, package_ID, trip_ID, request_ID, senderId, sender_name, traveler_name);
   return (
     <SafeAreaView className="h-full">
         <View className="mt-8">
@@ -33,7 +33,8 @@ const messageToTraveler = () => {
                             request_ID: request_ID,
                             sendername: sender_name,
                             budget: sender_budget,
-                            sender_id: senderId
+                            sender_id: senderId,
+                            travelerName: traveler_name,
                         }
                     })
                 }}
